@@ -1,0 +1,14 @@
+TO celtic :num 
+	CS HT
+	SETLW 2
+	MAKELOC "cnt" 0
+	MAKELOC "col" 0
+	LABEL "move"
+		PU
+		SETPOS RANDOM $win_width RANDOM $win_height
+		PD
+		REPEAT 20 [SETPC :col MAKELOC "col" (:col + 1) % $num_colours REPEAT 180 [FD 1 RT 2] RT 18]
+		INC :cnt
+	IF :cnt < :num [GO "move"]
+	ST
+END

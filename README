@@ -1,0 +1,30 @@
+                             *** LOGO README ***
+
+Introduction
+------------
+LOGO is a language based very losely on Lisp that controls a "turtle" that
+response to drawing commands that is designed to teach children the basics of
+programming. The turtle can either be on screen (as in this version) or real.
+As such it is not a fully featured language missing obvious functionality such
+as file I/O and networking. In my opinion once a child understands the concepts
+of programming well enough to wish to use this missing functionality then they
+are probably better off moving to a more "grown up" fully featured language 
+such as Python or BASIC.
+
+
+Compiling
+---------
+The code is written in C++ 2011 and has been tested and compiled on Linux and
+MacOS, the latter requiring XQuartx and the X windows development libraries
+and headers to be installed. To compile the code simply type "make".
+
+
+Documentation
+-------------
+Please see the docs directory for important programming documentation.
+
+
+Example code
+------------
+There is an example code directory that has some procedures that given you an
+idea of how things work and some of the language functionality. 

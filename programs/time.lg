@@ -1,0 +1,6 @@
+TO time 
+	MAKE "secs" GETSECS
+	GETDATE :secs "UUTC  : %F %H:%M:%S"
+	GETDATE :secs "Local: %F %H:%M:%S %Z %z"
+END
+

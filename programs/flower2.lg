@@ -1,0 +1,13 @@
+TO flower2 :num 
+	MAKELOC "cnt" 1
+	MAKELOC "col" 0
+	CS HT SETLW 3
+	DLABEL
+		PU SETPOS RANDOM $win_width RANDOM $win_height PD
+		SETPC :col
+		REPEAT 19 [REPEAT 10 [FD 20 RT 10] RT 60]
+		INC :cnt
+		MAKELOC "col" (:col + 5) % $num_colours
+	IF :cnt < :num [GO]
+END
+

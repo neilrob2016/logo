@@ -1,0 +1,14 @@
+TO shapes :max_sides 
+	CS PU LT 90
+	SETY $win_height - 10
+	PD
+	MAKE "sides" 3
+	MAKE "col" 0
+	DLABEL
+		SETPC :col
+		REPEAT :sides [FD 80 RT (360 / :sides)]
+		IF :sides = :max_sides [STOP]
+		MAKE "col" (:col + 5) % $num_colours
+		INC :sides
+	GO
+END

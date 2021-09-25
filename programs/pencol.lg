@@ -1,0 +1,4 @@
+cs home
+make "col" 0
+repeat $num_colours [setpc :col fd 200 rt 91 make "col" :col+1 wait 0.1]
+

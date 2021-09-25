@@ -1,0 +1,16 @@
+
+TO celtic2 :cnt 
+	MAKELOC "i" 0
+	MAKELOC "col" 0
+	CS HT
+	SETLW 5
+	DLABEL
+		PU
+		SETPOS RANDOM $win_width RANDOM $win_height
+		PD
+		SETPC :col
+		REPEAT 8 [SETPC :col MAKELOC "col" (:col + 1) % $num_colours REPEAT 2 [FD 75 RT 90 FD 75] RT 45]
+		INC :i
+		IF :i = :cnt [STOP]
+	GO
+END

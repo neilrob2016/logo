@@ -1,0 +1,3 @@
+; Cycle the background colours
+make "col" 0
+repeat $num_colours [setbg :col make "col" :col+1 wait 0.1]

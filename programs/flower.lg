@@ -1,0 +1,9 @@
+TO flower :cnt 
+	CS HT
+	MAKE "ang" 360 / :cnt
+	MAKE "col" 0
+	MAKE "coladd" $num_colours / :cnt
+	REPEAT :cnt [SETPC :col REPEAT 4 [FD 100 RT 90] RT :ang MAKE "col" :col + :coladd]
+	ST
+END
+

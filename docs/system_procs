@@ -1,0 +1,555 @@
+                           *** SYSTEM PROCEDURES ***
+
+System procedures are built in to the Logo interpreter. The only difference
+between these and commands is that these *always* return a value.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ABS <number>
+
+Returns the absolute value of a number. Eg:
+
+? abs(-10)
+10
+? abs(10)
+10
+
+See: SGN
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ACOS <-1 to 1>
+
+Returns the arc cosine of the value.
+
+See: ASIN, ATAN, SIN, COS, TAN
+See commands: DEG, RAD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ASCII "<character>"
+
+This takes a single character argument and returns its numeric ascii value. Eg:
+
+? ascii "A"
+65
+
+See: CHAR
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ASIN <-1 to 1>
+
+Returns the arc sine of the value.
+
+See: ACOS, ATAN, SIN, COS, TAN
+See commands: DEG, RAD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ATAN <number>
+
+Returns the arc tangent of the number.
+
+See: ASIN, ACOS, SIN, COS, TAN
+See commands: DEG, RAD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+BF [<list>]
+
+But First - this returns the given list minus the first element. Eg:
+
+[2 3]
+
+See: BL, FIRST, LAST, PIECE, ITEM
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+BL [<list>]
+
+But Last - returns the given list minus the last element. Eg:
+
+? bl [1 2 3]
+[1 2]
+
+See: BF, FIRST, LAST, PIECE, ITEM
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+CHAR <0-255>
+
+Returns the ascii character for the given numeric value. Eg:
+
+? char 65
+A
+
+See: ASCII
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+COS <number>
+
+Returns the cosine of the number. Eg:
+
+? cos 60
+0.5
+
+See: SIN, TAN, ACOS, ASIN, ATAN
+See commands: DEG, RAD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+COUNT "<string>"
+COUNT [<list>]
+
+Returns the count of the number of characters in a string or the number of 
+elements in a list. Eg:
+
+? count "hello"
+5
+? count [1 2 3]
+3
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+DIR 
+DIR <directory path>
+
+This returns all the LOGO program files (those with a .lg extension) in a list.
+If no path is given it uses the current working directory. eg:
+
+? DIR "examples"
+["winsize" "flower" "uproc" "if" "repeat" "label" "switch" "spin_turtle" "bg" "spin_flower" "celtic" "goto" "pencol"]
+? MAKE "d" DIR "examples"
+? :d
+["winsize" "flower" "uproc" "if" "repeat" "label" "switch" "spin_turtle" "bg" "spin_flower" "celtic" "goto" "pencol"]
+
+See: GETDIR
+See commands: LOAD, SAVE, CD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+EVAL [<list>]
+
+This takes a list and returns a new list with the evaluated values of any
+variables and expressions in the given list. Eg:
+
+? make "ls" [:a :b 2+2 [3+3] "world"]
+? make "a" 123
+? make "b" "hello"
+? eval :ls
+[123 "hello" 4 [6] "world"]
+
+See command: RUN 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+FIRST [<list>]
+
+Returns the first element in the list. Eg:
+
+? first [1 2 3]
+1
+
+See: LAST, ITEM, PIECE, BF, BL
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+FMT <number> <format string> 
+
+This returns a string containing the formatted version of the number. The 
+format contains only '#' and '.'. It will pad with zeros or chop the number 
+formatting as appropriate.
+Eg:
+
+? fmt 123.4567 "#######.#######"
+0000123.4567000
+? fmt 123.4567 "######.##"
+000123.45
+? fmt 123.4567 ".#"
+123.4
+? fmt 123.4567 "##."
+23.456700
+? fmt 123.4567 "##.#"
+23.4
+
+See command: PR
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+FPUT <value> [<list>]
+
+This puts the value into the list as the first element. Eg:
+
+? fput "hello" ["cruel" "world"]
+["hello" "cruel" "world"]
+
+See: LPUT, FIRST, LAST
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GETDATE <secs since epoch> <output format> <localtime 0/1>
+
+This returns a formatted datetime string based on the seconds since the epoch.
+The formatting is that of the Posix strftime() C function so read the man page
+for all possible formatting codes. If the first character in the format string
+is 'U' then the time is returned in UTC (and that U is not printed) else the
+time is in localtime. Eg:
+
+? pops
+User procedures
+---------------
+TO time 
+	MAKE "secs" GETSECS
+	PR GETDATE :secs "UUTC  : %F %H:%M:%S" 
+	PR GETDATE :secs "Local: %F %H:%M:%S %Z %z" 
+END
+
+? time
+UTC  : 2020-05-04 09:39:59
+Local: 2020-05-04 10:39:59 BST +0100
+?
+
+See: GETSECS
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GETDIR
+
+This procedure takes no arguments and simply returns the current working
+directory. Eg:
+
+? getdir
+/Users/neil/source/Lang/logo
+
+See: DIR
+See commands: LOAD, SAVE, CD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GETSECS
+
+This returns the number of seconds since the unix 1970 epoch. Eg:
+
+? dlabel getsecs wait 1 go
+1588326823
+1588326824
+1588326825
+1588326826
+1588326827
+
+See: GETDATE
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+INT <number>
+
+This returns the integer portion of a number. Note that it does NOT round the
+number. Eg:
+
+? int 3.5
+3
+
+See: ROUND
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ITEM <element position> [<list>]
+
+Returns the element at the given position. Eg:
+
+? item 1 [1 2 [3]]
+1
+? item 3 [1 2 [3]]
+[3]
+
+See: PIECE, FIRST, LAST
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LAST [<list>]
+
+Returns the last element in the list. Eg:
+
+? last [1 2 3]
+3
+
+See: FIRST, ITEM, PIECE, BF, BL
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LC <string>
+
+Converts a string to lowercase. Eg:
+
+? lc "HELLO world"
+hello world
+
+See: UC
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LISTP <expression>
+
+Returns 1 if the result of the expression is a list, else 0. eg:
+
+? listp "helo"
+0
+? listp 123
+0
+? listp [1 2]
+1
+
+See: NUMP, STRP
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LOG/LOG2/LOG10 <number>
+
+These return the natural, base 2 and base 10 logarithms respectively. Eg:
+
+? log $e
+1
+? log2 256
+8
+? log10 1000
+3
+
+See: PWR
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LPAD <string to pad> <character to pad with> <pad length>
+
+This returns a left padded string. If the input string is >= pad length then 
+the return value is the same as the string. Eg:
+
+? "--" lpad "hello" "x" 10 "--"
+--xxxxxhello--
+? "--" lpad "hello" "x" 3 "--"
+--hello--
+
+See: RPAD, FMT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LPUT <value> [<list>]
+
+Inserts the value as the last element in the given list. eg:
+
+? lput 2 [0 1]
+[0 1 2]
+
+See: FPUT, FIRST, LAST
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+MATCH/MATCHC <string> <wildcard pattern>
+
+These procedurs match the string against the wildcard pattern retuning either 1
+or 0 for a match or no match. MATCHC is also case sensitive. Wildcards can 
+contain '?' meaning match any character once and '*' which means any group of 
+characters. Note these procedures do not support regular expressions. Eg:
+
+? match "hello" "*el?o"
+1
+? match "hello" "*eL?o"
+1
+? matchc "hello" "*eL?o"
+0
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+MEMBERP <needle> <haystack>
+
+This returns the location of the needle in the haystack as an index from 1.
+The haystack can be either a string or a list. The needle can be anything if
+the haystack is a list but only a string if the haystack is a string. Eg:
+
+? memberp "xx" "hexxo"
+3
+? memberp "b" ["a" "b" "c"]
+2
+? memberp [1] ["x" [123] [1]]
+3
+
+See: PIECE, ITEM
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NUM <numeric string>
+
+This converts a string containing a valid number into a number type. If the
+string is not a valid number an error occurs. Eg:
+
+? 2 * num "123"
+246
+? num "hello"
+ERROR 12: Cannot convert at "hello"
+
+See: STR
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NUMP <expression>
+
+Returns 1 if the result of the expression is a number. Eg:
+
+? nump 123
+1
+? nump "Hello"
+0
+? nump []
+0
+
+See: STRP, LISTP
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PIECE <from> <to> [<list>]
+
+Return a piece of the list starting at "from" and continuing to "to". Eg:
+
+? piece 3 5 [1 2 3 4 5 6]
+[3 4 5]
+
+See: ITEM, FIRST, LAST
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+RANDOM <max value>
+
+Returns a random integer value between 0 and the max value given. Eg:
+
+? repeat 10 [wr random 10 " "] pr
+10 2 3 4 8 9 9 3 0 5 
+
+See: SHUFFLE
+See command: SEED
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+RC <do echo 0/1>
+
+Read Character from standard input. If do echo is set to 1 then the character
+is echoed to the console. Eg:
+
+? make "i" rc 1 
+x
+? :i
+x
+
+See: RL
+See commands: PR, WR, EAT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+RL <do echo 0/1>
+
+Read Line - read a line from standard input terminated by a newline. If do
+echo is set to 1 then echo the characters to the console as they're typed. Eg:
+
+? wr "Enter: " make "line" rl 1 :line
+Enter: hello
+hello
+
+See: RC
+See commands: PR, WR, EAT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ROUND <number>
+
+Do standard integer rounding up or down on a floating point value. Eg:
+
+? round 3.2
+3
+? round 3.5
+4
+
+See: INT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+RPAD <string to pad> <character to pad with> <pad length>
+
+This returns a right padded string. If the input string is >= pad length then 
+the return value is the same as the string. Eg:
+
+? "--" rpad "hello" "x" 10 "--"
+--helloxxxxx--
+? "--" rpad "hello" "x" 3 "--" 
+--hello--
+
+See: LPAD, FMT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SGN <number>
+
+Return -1, 0 or 1 depending on whether the number is < 0, 0 or > 0. Eg:
+
+? sgn -5
+-1
+? sgn 0
+0
+? sgn 6
+1
+
+See: ABS
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SHUFFLE "<string>"
+SHUFFLE [<list>]
+
+Randomly shuffles the contents of the string or list. Eg:
+
+? shuffle "abcdef"
+bdaefc
+? shuffle [1 2 3 4 5 6]
+[5 3 1 2 4 6]
+
+See: RANDOM
+See command: SEED
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SIN <number>
+
+Returns the sine of the number. Eg:
+
+? sin 45
+0.707107
+
+See: COS, TAN, ACOS, ASIN, ATAN
+See commands: DEG, RAD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SQRT <number>
+
+Returns the square root of the number. Eg:
+
+? sqrt 2
+1.41421
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+STR <number>
+
+Converts a number into a string. Eg:
+
+? (str 123) + "abc"
+123abc
+
+See: NUM
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+STRP <expression>
+
+Returns 1 if the result of the expression is a string, else 0. Eg:
+
+? strp 1
+0
+? strp []
+0
+? strp "hello"
+1
+
+See: NUMP, LISTP
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TAN <number>
+
+Returns the tangent of the number. Eg:
+
+? tan 45
+1
+
+See: SIN, COS, ASIN, ACOS, ATAN
+See commands: DEG, RAD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TF
+
+Turtle Facts. This returns information about the turtle as a list in the
+following order:
+
+[Xpos Ypos angle size line_width pen_colour pen_down turtle_visible
+ set_fill edge_state window_state]
+
+where edge_state is one of UNBOUNDED, FENCED or WRAPPED. Eg:
+
+? cs pu ht
+? tf
+[400 300 0 20 1 105 "UP" "HIDDEN" "NO_FILL" "UNBOUNDED" "SOLID" "WIN_VISIBLE"]
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+UC <string>
+
+Converts a string to uppercase. Eg:
+
+? uc "HELLO world"
+HELLO WORLD
+
+See: LC

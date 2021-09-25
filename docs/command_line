@@ -1,0 +1,23 @@
+                       *** COMMAND LINE PARAMETERS ***
+
+LOGO has a few command line parameters. The usage is as follows:
+
+Usage: ./logo
+       -d <X display>  : Default = NULL
+       -w <win width>  : Default = 800
+       -h <win height> : Default = 600
+       -l <filename>   : Program file to load at startup.
+       -r <text>       : Code to run immediately.
+       -c <lines>      : Max number of console history lines. Default = 100
+       -i              : Indent procedure listings between LABEL and GO.
+       -u              : Start with the graphics window hidden (unmapped).
+       -con            : Console only, no turtle graphics.
+       -ver            : Display version then exit.
+Note: All parameters are optional.
+
+-d: Sets the X windows display, eg: mymachine:0
+-w: Sets the initial X window width.
+-h: Sets the initial X window height.
+-l: Loads all the procedures in the program file
+-r: Will run any code in the text including anything loaded using -p before the
+    prompt is displayed.

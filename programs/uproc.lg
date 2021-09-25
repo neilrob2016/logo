@@ -1,0 +1,8 @@
+TO blah :x :y :z 
+	makeloc "m" :x * :y * :z
+	pr "x = " :x 
+	pr "y = " :y 
+	pr "z = " :z 
+	pr "m = " :m
+END
+

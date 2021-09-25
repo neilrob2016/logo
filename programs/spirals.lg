@@ -1,0 +1,26 @@
+TO spirals 
+	MAKE "angle" 90
+	MAKE "colour" 0
+	MAKE "width" 1
+	MAKE "style" 0
+	MAKE "styles" ["solid" "dash" "double_dash"]
+	MAKE "width_add" 1
+	MAKE "angle_add" 1
+	CS
+	WRAP
+	DLABEL
+		SETPC :colour
+		SETLW :width
+		SETLS ITEM (:style + 1) :styles
+		FD 50 RT :angle
+		MAKE "angle" :angle - :angle_add
+		MAKE "width" :width + :width_add
+		MAKE "style" (:style + 1) % 3
+		MAKE "colour" (:colour + 1) % $num_colours
+		IF :angle <= 0 or :angle >= 90 [MAKE "angle_add" ((RANDOM 4) - 2)]
+		IF :width = 1 or :width = 10 [MAKE "width_add" -:width_add]
+		WAIT 0.050000
+	GO
+	POALL
+END
+

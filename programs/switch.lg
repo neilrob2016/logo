@@ -1,0 +1,12 @@
+TO switch :val 
+   ; Limitations are labels can only be alphanumeric. 
+   makeloc "val" str :val
+   GO :val 
+   LABEL "one" PR "ONE" OP 
+   LABEL "two" PR "TWO" OP 
+   LABEL "three" PR "THREE" OP 
+   LABEL "1" PR "1" OP
+   ; Equivalent of default
+   DLABEL PR "Val = " :val
+   PR "END"
+END

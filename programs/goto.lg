@@ -1,0 +1,9 @@
+TO blah 
+   MAKE "cnt" 0 
+   PR "start" 
+   LABEL "here" 
+   PR "cnt = " :cnt 
+   IF :cnt = 100 [STOP]
+   INC :cnt
+   GO "here" 
+END

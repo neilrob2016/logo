@@ -1,0 +1,6 @@
+make "def" []
+make "abc" 0
+repeat 10 [make "def" :def + eval [:abc] make "abc" :abc + 1 :def]
+
+make "list" [1 2 3 4 5]
+repeat 5 [:list make "list" bf :list]

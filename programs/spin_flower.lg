@@ -1,0 +1,11 @@
+TO spin_flower 
+   CS HT
+   MAKELOC "col" 0
+   LABEL "x"
+   SETPC :col
+   FD 200 RT 170
+   MAKELOC "col" (:col + 1) % $num_colours
+   WAIT 0.01
+   GO "x"
+END
+

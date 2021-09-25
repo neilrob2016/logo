@@ -1,0 +1,15 @@
+TO spin_turtle 
+	MAKELOC "size" 0
+	MAKE "col" 0
+	CS
+	LABEL "loop"
+		"Size = " LPAD STR (:size) " " 4
+		SETSZ :size
+		SETPC :col
+		RT 10
+		INC :size
+		MAKE "col" (:col + 1) % $num_colours
+		WAIT 0.100000
+	GO "loop"
+END
+

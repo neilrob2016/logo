@@ -1,0 +1,8 @@
+TO docount 
+   MAKE "cnt" 0 
+   LABEL "loop"
+   PR "Count = " :cnt 
+   IF :cnt = 10 [STOP] 
+   INC :cnt
+   GO "loop"  ; Can be in a variable 
+END

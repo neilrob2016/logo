@@ -1,0 +1,44 @@
+                               *** GOTCHAS ***
+
+A few things which might catch out the unwary.
+
+1)
+Passing negative numbers as parameters to procedures can produce errors. Eg:
+
+? pops
+User procedures
+---------------
+TO test :a :b 
+	PRN "A = " :a ", b = " :b
+END
+
+? test 1 -2
+ERROR 7: Missing argument(s) at "test"
+
+The reason this occurs is because anything following a procedure is
+evaluated as an expression first THEN passed as parameters. Here the
+expression is being evaluated is 1-2, not 1, -2. To solve this problem put
+negative numbers in brackets so it is treated as a seperate expression. Eg:
+
+? test 1 (-2)
+A = 1, b = -2
+?
+
+This problem also occurs with built in system procedures. Eg:
+
+? setpos -10 -10
+ERROR 7: Missing argument(s) at "setpos"
+? setpos -10 (-10)
+?
+
+
+2)
+NRJ-LOGO uses standard quoted strings unlike other versions of the language 
+which only support individual words which then have to be concatenated together.
+For example to set the variable 'str' to a string:
+
+Dr Logo : MAKE "str (SE "hello "cruel "world)
+NRJ-LOGO: MAKE "str" "hello cruel world"
+
+I felt that quoted strings were simpler for children to understand and hence
+the SE(ntence) command does not exist in NRJ-LOGO.

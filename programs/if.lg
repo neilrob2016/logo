@@ -1,0 +1,7 @@
+make "yes" [repeat 4 [pr "yes"]]
+make "no" [repeat 4 [pr "no"]]
+
+make "cond" 1
+;make "cond" 0
+if :cond ["----" exec :yes pr "----"] ["----" exec :no pr "----"]
+make "cond" 1

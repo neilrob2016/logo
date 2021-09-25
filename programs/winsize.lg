@@ -1,0 +1,12 @@
+TO winsize 
+	MAKE "w" 10
+	MAKE "h" 10
+	DLABEL
+	SETWINSZ :w :h
+	MAKE "w" :w + 10
+	MAKE "h" :h + 10
+	IF :h > 400 [STOP]
+	WAIT 0.2
+	GO ""
+END
+

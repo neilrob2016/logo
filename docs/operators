@@ -1,0 +1,27 @@
+                             *** OPERATORS ***
+
+LOGO has a number of built in operators all of which are self evident except
+for the ones that are annotated:
+
+Logical
+=======
+   NOT
+   AND  : This does lazy evaluation
+   OR
+   XOR
+   =
+   <>   : Not equals
+   <
+   >
+   <=
+   >=
+   
+Mathematical
+============
+   +
+   -
+   *
+   /
+   %   : Modulus. Eg: 10 % 3 = 1
+   ^   : Power.   Eg: 10^2 = 100
+

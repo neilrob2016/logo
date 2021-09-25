@@ -1,0 +1,27 @@
+May 2020
+========
+1.0.0  Initial version
+
+
+August 2020
+===========
+1.0.1 Added #include <functional> required for some gcc versions
+
+
+August 2021
+===========
+1.1.0
+Implemented lazy evaluation for AND operator.
+Added POSF command.
+Added SETLS command.
+Added -i option.
+Added fill flag to turtle facts.
+Improved efficiency of line drawing algo when turtle is wrapped.
+
+
+September 2021
+==============
+1.2.0
+Added HW and SW commands.
+Added -u command line option.
+Changed format turtle facts TF command output.

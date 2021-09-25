@@ -1,0 +1,21 @@
+                       *** System global variables ***
+
+Fixed at boot:
+	$num_colours is 106
+	$degs_per_rad is 57.295780
+	$file_extension is ".lg"
+	$interpreter is "NRJ-LOGO"
+	$e is 2.718282
+	$pi is 3.141593
+	$copyright is "Copyright (C) Neil Robertson 2020"
+	$version is "1.0.0"
+	$build_date
+	$username
+	$pid
+	$home
+
+Can changa during run:
+	$win_height
+	$win_width
+	$win_colour
+	$angle_mode
