@@ -1,0 +1,10 @@
+; Convert a string to a list and iterate through it
+TO iterstr 
+	MAKE "str" "1 2 " + (CHAR 34) + "hello" + (CHAR 34) + " [ 4 5 ] 6"
+	"String: " :str
+	MAKE "lst" LIST :str
+	MAKE "size" COUNT :lst
+	MAKE "cnt" 1
+	REPEAT :size [:cnt ": " ITEM :cnt :lst MAKE "cnt" :cnt + 1]
+END
+

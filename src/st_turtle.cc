@@ -422,10 +422,9 @@ void st_turtle::fillPolygon(int col, t_shape &polygon)
 /*** Output format:
      [<xpos> <ypos> <heading> <turtle size> <visible 1/0> <pen down 1/0> 
       <pen colour>] ***/
-st_line *st_turtle::facts()
+shared_ptr<st_line> st_turtle::facts()
 {
-	st_line *line = new st_line;
-	line->type = LINE_LIST;
+	shared_ptr<st_line> line = make_shared<st_line>(true);
 	line->tokens.push_back(st_token(x));
 	line->tokens.push_back(st_token(y));
 	line->tokens.push_back(st_token(angle));

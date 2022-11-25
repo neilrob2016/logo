@@ -4,6 +4,6 @@ TO linechars
 		MAKE "line" RL 1
 		MAKE "pos" 1
 		MAKE "cnt" COUNT :line
-		REPEAT :cnt [MAKE "ch" ITEM :pos :line PRN :ch "=" ASCII :ch INC :pos]
+		REPEAT :cnt [MAKE "ch" ITEM :pos :line PR :ch "=" ASCII :ch INC :pos]
 	GO
 END

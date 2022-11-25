@@ -18,6 +18,17 @@ st_line::st_line()
 
 
 
+/*** Unlikely is_list will ever be false ***/
+st_line::st_line(bool is_list)
+{
+	type = is_list ? LINE_LIST : LINE_PROG;
+	linenum = 0;
+	parent_proc = NULL;
+}
+
+
+
+
 st_line::st_line(st_line *rhs)
 {
 	type = rhs->type;
@@ -1098,13 +1109,11 @@ shared_ptr<st_line> st_line::evalList()
 	if (++nest_depth > MAX_NEST_DEPTH)
 		throw t_error({ ERR_MAX_NEST_DEPTH, "" });
 
-	shared_ptr<st_line> line = make_shared<st_line>();
+	shared_ptr<st_line> line = make_shared<st_line>(true);
 	t_result result;
 
 	try
 	{
-		line->type = LINE_LIST;
-
 		// Go through our tokens, evaluate any vars and create copies 
 		// for the new line
 		for(size_t pos=0;pos < tokens.size();)
@@ -1166,10 +1175,10 @@ st_value st_line::getListElement(int index)
 /*** Get a subsection of a list ***/
 shared_ptr<st_line> st_line::getListPiece(size_t from, size_t to)
 {
-	assert(type == LINE_LIST && from > 0 && to >= from);
+	// Cast away unsignedness
+	assert(type == LINE_LIST && (long)from > 0 && (long)to >= (long)from);
 
-	shared_ptr<st_line> line = make_shared<st_line>();
-	line->type = LINE_LIST;
+	shared_ptr<st_line> line = make_shared<st_line>(true);
 	if (from <= tokens.size())
 	{
 		if (to > tokens.size()) to = tokens.size();
@@ -1181,16 +1190,14 @@ shared_ptr<st_line> st_line::getListPiece(size_t from, size_t to)
 }
 
 
-//////////////////////////////////// SETTERS //////////////////////////////////
+////////////////////////////////// SETTERS ////////////////////////////////////
 
 /*** Create a copy of this->listline except with val prepended ***/
 shared_ptr<st_line> st_line::setListFirst(st_value &val)
 {
 	assert(type == LINE_LIST);
 
-	shared_ptr<st_line> line = make_shared<st_line>();
-
-	line->type = LINE_LIST;
+	shared_ptr<st_line> line = make_shared<st_line>(true);
 	line->tokens.push_back(st_token(val));
 	line->tokens.insert(line->tokens.end(),tokens.begin(),tokens.end());
 
@@ -1205,9 +1212,7 @@ shared_ptr<st_line> st_line::setListLast(st_value &val)
 {
 	assert(type == LINE_LIST);
 
-	shared_ptr<st_line> line = make_shared<st_line>();
-
-	line->type = LINE_LIST;
+	shared_ptr<st_line> line = make_shared<st_line>(true);
 	line->tokens.insert(line->tokens.end(),tokens.begin(),tokens.end());
 	line->tokens.push_back(st_token(val));
 
@@ -1435,6 +1440,26 @@ string st_line::toString()
 	// Remove the trailing space
 	if (outstr.back() == ' ') outstr.pop_back();
 	return outstr;
+}
+
+
+
+
+string st_line::toSimpleString()
+{
+	string str;
+	bool space = false;
+
+	for(st_token &tok: tokens)
+	{
+		if (space) str += " ";
+		if (tok.type == TYPE_LIST)
+			str += tok.listline->toSimpleString();
+		else
+			str += tok.strval;
+		space = true;
+	}
+	return str;
 }
 
 

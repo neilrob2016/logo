@@ -9,7 +9,7 @@ Passing negative numbers as parameters to procedures can produce errors. Eg:
 User procedures
 ---------------
 TO test :a :b 
-	PRN "A = " :a ", b = " :b
+	PR "A = " :a ", b = " :b
 END
 
 ? test 1 -2

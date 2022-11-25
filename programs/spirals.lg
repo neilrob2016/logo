@@ -21,6 +21,5 @@ TO spirals
 		IF :width = 1 or :width = 10 [MAKE "width_add" -:width_add]
 		WAIT 0.050000
 	GO
-	POALL
 END
 

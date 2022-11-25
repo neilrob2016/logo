@@ -39,8 +39,8 @@ using namespace std;
 
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
-#define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2021"
-#define LOGO_VERSION     "1.2.0"
+#define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2022"
+#define LOGO_VERSION     "1.3.0"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths
@@ -263,6 +263,7 @@ enum en_com
 	COM_SEED,
 	COM_DEG,
 	COM_RAD,
+	COM_CT,
 
 	NUM_COMS
 };
@@ -302,41 +303,46 @@ enum en_sproc
 	SPROC_TF,
 	SPROC_NUM,
 	SPROC_STR,
-	SPROC_RANDOM,
-	SPROC_INT,
+	SPROC_SSTR,
+	SPROC_LIST,
 
 	// 25
+	SPROC_RANDOM,
+	SPROC_INT,
 	SPROC_ROUND,
 	SPROC_SIN,
 	SPROC_COS,
-	SPROC_TAN,
-	SPROC_ASIN,
 
 	// 30
+	SPROC_TAN,
+	SPROC_ASIN,
 	SPROC_ACOS,
 	SPROC_ATAN,
 	SPROC_LOG,
-	SPROC_LOG2,
-	SPROC_LOG10,
 
 	// 35
+	SPROC_LOG2,
+	SPROC_LOG10,
 	SPROC_SQRT,
 	SPROC_ABS,
 	SPROC_SGN,
-	SPROC_SHUFFLE,
-	SPROC_MATCH,
 
 	// 40
+	SPROC_SHUFFLE,
+	SPROC_MATCH,
 	SPROC_MATCHC,
 	SPROC_DIR,
 	SPROC_GETDIR,
-	SPROC_GETSECS,
-	SPROC_GETDATE,
 
 	// 45
+	SPROC_GETSECS,
+	SPROC_GETDATE,
 	SPROC_FMT,
 	SPROC_LPAD,
 	SPROC_RPAD,
+
+	// 50
+	SPROC_PARSE,
 
 	NUM_SPROCS
 };
@@ -504,7 +510,6 @@ struct st_value
 	st_value(const char *_str);
 	st_value(const st_value &rval);
 	st_value(st_token &tok);
-	st_value(st_line *_listline);
 	st_value(shared_ptr<st_line> _listline);
 
 	void parse();
@@ -512,7 +517,6 @@ struct st_value
 	void set(double _num);
 	void set(string _str);
 	void set(const char *_str);
-	void set(st_line *_listline);
 	void set(shared_ptr<st_line> _listline);
 	void set(const st_value &rval);
 	string setListString();
@@ -582,6 +586,7 @@ struct st_line
 	st_user_proc *parent_proc;
 
 	st_line();
+	st_line(bool is_list);
 	st_line(st_line *line);
 	st_line(shared_ptr<st_line> &rhs);
 	st_line(st_line *line, size_t from);
@@ -591,7 +596,7 @@ struct st_line
 
 	void parseAndExec(string &rdline);
 	bool tokenise(string &rdline);
-	void addToken(int type, string &word);
+	void addToken(int type, string &strval);
 	void addOpToken(char c, int opcode);
 	void setUndefinedTokens();
 	void negateTokens();
@@ -615,6 +620,7 @@ struct st_line
 
 	st_value getListElement(int index);
 	shared_ptr<st_line> getListPiece(size_t from, size_t to);
+
 	shared_ptr<st_line> setListFirst(st_value &val);
 	shared_ptr<st_line> setListLast(st_value &val);
 	void setLineNum(int _linenum);
@@ -631,6 +637,7 @@ struct st_line
 	void   dump(FILE *fp, int &indent, bool show_linenum);
 	int    getIndentCount(int com);
 	string toString();
+	string toSimpleString();
 	void   printTrace(char call_type, const char *name);
 };
 
@@ -752,7 +759,7 @@ struct st_turtle
 	void fill();
 	void fillPolygon(int col, t_shape &polygon);
 
-	st_line *facts();
+	shared_ptr<st_line> facts();
 };
 
 
@@ -976,6 +983,7 @@ size_t comWatch(st_line *line, size_t tokpos);
 size_t comUnWatch(st_line *line, size_t tokpos);
 size_t comSeed(st_line *line, size_t tokpos);
 size_t comAngleMode(st_line *line, size_t tokpos);
+size_t comCT(st_line *line, size_t tokpos);
 
 // procedures.cc
 t_result procEval(st_line *line, size_t tokpos);
@@ -1008,6 +1016,8 @@ t_result procGetSecs(st_line *line, size_t tokpos);
 t_result procGetDate(st_line *line, size_t tokpos);
 t_result procFmt(st_line *line, size_t tokpos);
 t_result procPad(st_line *line, size_t tokpos);
+t_result procSplit(st_line *line, size_t tokpos);
+t_result procList(st_line *line, size_t tokpos);
 
 // vars.cc
 void     setSystemVars();
@@ -1152,7 +1162,8 @@ pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS] =
 	// 80
 	{ "SEED",    comSeed },
 	{ "DEG",     comAngleMode },
-	{ "RAD",     comAngleMode }
+	{ "RAD",     comAngleMode },
+	{ "CT",      comCT }
 };
 
 // Built in system procedures that take value(s) and return a result. Array 
@@ -1191,41 +1202,44 @@ pair<const char *,function<t_result(st_line *, size_t)>> sysprocs[NUM_SPROCS] =
 	{ "TF",     procTF },
 	{ "NUM",    procNum },
 	{ "STR",    procStr },
-	{ "RANDOM", procMaths },
-	{ "INT",    procMaths },
+	{ "SSTR",   procStr },
+	{ "SPLIT",  procSplit },
 
 	// 25
+	{ "RANDOM", procMaths },
+	{ "INT",    procMaths },
 	{ "ROUND",  procMaths },
 	{ "SIN",    procMaths },
 	{ "COS",    procMaths },
-	{ "TAN",    procMaths },
-	{ "ASIN",   procMaths },
 
 	// 30
+	{ "TAN",    procMaths },
+	{ "ASIN",   procMaths },
 	{ "ACOS",   procMaths },
 	{ "ATAN",   procMaths },
 	{ "LOG",    procMaths },
-	{ "LOG2",   procMaths },
-	{ "LOG10",  procMaths },
 
 	// 35
+	{ "LOG2",   procMaths },
+	{ "LOG10",  procMaths },
 	{ "SQRT",   procMaths },
 	{ "ABS",    procMaths },
 	{ "SGN",    procMaths },
-	{ "SHUFFLE",procShuffle },
-	{ "MATCH",  procMatch },
 
 	// 40
+	{ "SHUFFLE",procShuffle },
+	{ "MATCH",  procMatch },
 	{ "MATCHC", procMatch },
 	{ "DIR",    procDir },
 	{ "GETDIR", procGetDir },
-	{ "GETSECS",procGetSecs },
-	{ "GETDATE",procGetDate },
 
 	// 45
+	{ "GETSECS",procGetSecs },
+	{ "GETDATE",procGetDate },
 	{ "FMT",    procFmt },
 	{ "LPAD",   procPad },
-	{ "RPAD",   procPad }
+	{ "RPAD",   procPad },
+	{ "LIST",   procList }
 };
 #else
 extern pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS];

@@ -1,11 +1,11 @@
-CC=c++ -g -std=c++11
+CC=c++ -g -std=c++11 -O2
 # No-ops assert()
-#CC=c++ -g -std=c++11 -DNDEBUG
+#CC=c++ -g -std=c++11 -O2 -DNDEBUG
 
 LIBPATH=-L/usr/X11R6/lib -L/usr/X11R6/lib64
 LIBS=-lX11 -lXext -lm
 
-COMP=$(CC) -Wall -c -g -I/usr/X11/include
+COMP=$(CC) -Wall -c -I/usr/X11/include
 OBJS=\
 	main.o \
 	st_io.o \

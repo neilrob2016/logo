@@ -243,6 +243,14 @@ Returns the element at the given position. Eg:
 1
 ? item 3 [1 2 [3]]
 [3]
+? item 5 [1 2]
+[]
+
+Note that if the positions is < 1 then an out of bounds error will be generated.
+
+eg:
+? item -1 [1 2]
+ERROR 20: Out of bounds at "-1"
 
 See: PIECE, FIRST, LAST
 
@@ -265,6 +273,21 @@ Converts a string to lowercase. Eg:
 hello world
 
 See: UC
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LIST <string>
+
+This converts any string into a list. Notably it will also parse embedded lists
+and return them as sublists. eg:
+
+? list "1 2 " + (char 34) + "hello" + (char 34) + ""
+[1 2 "hello"]
+? item 3 (list "1 2 " + (char 34) + "hello" + (char 34) + "")
+hello
+? item 3 list "1 2 [3 4] 5"
+[3 4]
+
+See: SPLIT, STR, SSTR, NUM
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LISTP <expression>
@@ -382,6 +405,14 @@ Return a piece of the list starting at "from" and continuing to "to". Eg:
 
 ? piece 3 5 [1 2 3 4 5 6]
 [3 4 5]
+? piece 8 10 [1 2 3]
+[]
+
+Note that if any of the positions are < 1 then an out of bounds error will
+be generated. eg:
+
+? piece 0 [1 2 3]
+ERROR 20: Out of bounds at "0"
 
 See: ITEM, FIRST, LAST
 
@@ -409,7 +440,6 @@ x
 
 See: RL
 See commands: PR, WR, EAT
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 RL <do echo 0/1>
 
@@ -488,6 +518,17 @@ See: COS, TAN, ACOS, ASIN, ATAN
 See commands: DEG, RAD
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SPLIT <seperator> <string>
+
+Splits the given string by the seperator into a list. The list will only
+contain strings. eg:
+
+? split "," "hello,123,cruel,,world"
+["hello" "123" "cruel" "" "world"]
+
+See: STR, SSTR, LIST
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SQRT <number>
 
 Returns the square root of the number. Eg:
@@ -497,13 +538,36 @@ Returns the square root of the number. Eg:
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 STR <number>
+STR [<list>]
 
-Converts a number into a string. Eg:
+Converts a number or a list into a string. Lists will look the same as when
+displayed as a list. Eg:
 
 ? (str 123) + "abc"
 123abc
+? "--" str [1 2 [3 "hello"] 5] "--"
+--[1 2 [3 "hello"] 5]--
+? strp [1 2]    
+0
+? strp str [1 2]
+1
 
-See: NUM
+See: NUM, SSTR, SPLIT, LIST
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SSTR <number>
+SSTR [<list>]
+
+Converts to a simple string. For numbers this works exactly as STR but for 
+lists its somewhat different as it de-nests lists. eg:
+
+? "--" sstr [1 2 [3 "hello"] 5] "--"
+--1 2 3 hello 5--
+? strp sstr [1 2]
+1
+
+See: NUM, STR, SPLIT, LIST
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 STRP <expression>
 
@@ -517,7 +581,6 @@ Returns 1 if the result of the expression is a string, else 0. Eg:
 1
 
 See: NUMP, LISTP
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TAN <number>
 

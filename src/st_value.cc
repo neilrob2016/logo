@@ -86,14 +86,6 @@ st_value::st_value(shared_ptr<st_line> _listline): listline(_listline)
 }
 
 
-
-
-st_value::st_value(st_line *_listline)
-{
-	set(_listline);
-}
-
-
 /////////////////////////////////// SETTERS //////////////////////////////////
 
 void st_value::reset()
@@ -148,18 +140,6 @@ void st_value::set(shared_ptr<st_line> _listline)
 	assert(_listline->type == LINE_LIST);
 	type = TYPE_LIST;
 	listline = _listline;
-	num = 0;
-	str = DEF_LIST_STR;
-}
-
-
-
-
-void st_value::set(st_line *_listline)
-{
-	assert(_listline->type == LINE_LIST);
-	type = TYPE_LIST;
-	listline.reset(_listline);
 	num = 0;
 	str = DEF_LIST_STR;
 }
@@ -327,7 +307,7 @@ void st_value::operator+=(st_value &rval)
 	case TYPE_LIST:
 		// Don't use original list as it may be part of a proc line 
 		// token
-		set(new st_line(listline));
+		set(make_shared<st_line>(listline));
 		*listline += *rval.listline;
 		break;
 	default:
@@ -370,7 +350,7 @@ void st_value::operator*=(st_value &rval)
 				throw t_error({ ERR_INVALID_ARG, rval.toString() });
 			int cnt = (int)num;
 			// Don't use original list
-			set(new st_line(rval.listline));
+			set(make_shared<st_line>(rval.listline));
 			*listline *= cnt;
 			}
 			break;
@@ -389,7 +369,7 @@ void st_value::operator*=(st_value &rval)
 		if (rval.type != TYPE_NUM)
 			throw t_error({ ERR_INVALID_ARG, rval.str });
 		if (rval.num < 0) throw t_error({ ERR_INVALID_ARG, rval.toString() });
-		set(new st_line(listline));
+		set(make_shared<st_line>(listline));
 		*listline *= (int)rval.num;
 		break;
 		}

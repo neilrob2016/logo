@@ -52,7 +52,14 @@ resets the line width to 1 and style to solid, places the turtle back at its
 home position, resets its heading to 0 degrees and resets the pen colour to 
 white.
 
-See: CLEAR, HOME
+See: CT, CLEAR, HOME
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+CT
+
+Clears the text terminal window.
+
+See: CS
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DEC :<variable> 
@@ -578,8 +585,23 @@ construct code segments on the fly. It also allows dynamic creation of user
 procedures.
 
 Eg:
-run [pr 123]
-run "to test pr \"test\" end"
+? make "a" [repeat 10 [pr "hello"]]
+? run :a
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+? make "b" "repeat 4 [fd 100 rt 90]"
+run :b
+?
+
+See sysproc: EVAL
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SAVE  "<file path>"

@@ -57,16 +57,25 @@ t_result procBFL(st_line *line, size_t tokpos)
 	case TYPE_NUM:
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
 	case TYPE_STR:
-		val.set(result.first.str.substr(
-			(sproc == SPROC_BF ? 1 : 0),
-			result.first.str.length()-1));
+		{
+		auto len = result.first.str.length();
+		if (len < 2)
+			val.set("");
+		else
+			val.set(result.first.str.substr((sproc == SPROC_BF ? 1 : 0),len-1));
+		}
 		break;
 	case TYPE_LIST:
 		{
 		st_line *rline = result.first.listline.get();
-		val.set(sproc == SPROC_BF ? 
-			rline->getListPiece(2,rline->tokens.size()) :
-			rline->getListPiece(1,rline->tokens.size()-1));
+		auto len = rline->tokens.size();
+		if (len < 2) val.set(make_shared<st_line>(true));
+		else
+		{
+			val.set(sproc == SPROC_BF ? 
+				rline->getListPiece(2,len) : 
+				rline->getListPiece(1,len-1));
+		}
 		}
 		break;
 	default:
@@ -110,21 +119,17 @@ t_result procPiece(st_line *line, size_t tokpos)
 	{
 	case TYPE_STR:
 		if (from_pos > rval.str.length())
-		{
-			throw t_error({ ERR_OUT_OF_BOUNDS,
-			                line->tokens[tokpos].toString() });
-		}
-		oval.set(rval.str.substr(from_pos-1,to_pos-from_pos+1));
+			oval.set("");
+		else
+			oval.set(rval.str.substr(from_pos-1,to_pos-from_pos+1));
 		break;
 	case TYPE_LIST:
 		{
 		st_line *rline = result.first.listline.get();
 		if (from_pos > rline->tokens.size())
-		{
-			throw t_error({ ERR_OUT_OF_BOUNDS,
-			                line->tokens[tokpos].toString() });
-		}
-		oval.set(rline->getListPiece(from_pos,to_pos));
+			oval.set(make_shared<st_line>(true));
+		else
+			oval.set(rline->getListPiece(from_pos,to_pos));
 		}
 		break;
 	default:
@@ -257,20 +262,16 @@ t_result procItem(st_line *line, size_t tokpos)
 	case TYPE_NUM:
 		throw t_error({ ERR_INVALID_ARG, line->tokens[index.second].toString() });
 	case TYPE_STR:
-		if ((int)ival.str.length() < pos)
-		{
-			throw t_error({ ERR_OUT_OF_BOUNDS,
-			                line->tokens[tokpos].toString() });  
-		}
-		rval.set(ival.str.substr(pos-1,1));
+		if (pos > (int)ival.str.length())
+			rval.set("");
+		else
+			rval.set(ival.str.substr(pos-1,1));
 		break;
 	case TYPE_LIST:
-		if ((int)ival.listline->tokens.size() < pos)
-		{
-			throw t_error({ ERR_OUT_OF_BOUNDS,
-			                line->tokens[tokpos].toString() });  
-		}
-		rval.set(ival.listline->getListElement(pos));
+		if (pos > (int)ival.listline->tokens.size())
+			rval.set(make_shared<st_line>(true));
+		else
+			rval.set(ival.listline->getListElement(pos));
 		break;
 	default:
 		assert(0);
@@ -433,8 +434,11 @@ t_result procNum(st_line *line, size_t tokpos)
 
 	// If its already a number just return it 
 	if (val.type == TYPE_NUM) return { val, result.second };
+
+	// If its a string thats numeric convert to a number
 	if (val.type == TYPE_STR && isNumber(val.str))
 		return { st_value(atof(val.str.c_str())), result.second };
+
 	throw t_error({ ERR_CANT_CONVERT,line->tokens[tokpos].toString() });
 	return { };
 }
@@ -442,19 +446,66 @@ t_result procNum(st_line *line, size_t tokpos)
 
 
 
-/*** Convert a number to a string ***/
+/*** Convert a number or list to a string ***/
 t_result procStr(st_line *line, size_t tokpos)
 {
+	int sproc = line->tokens[tokpos].subtype;
 	t_result result = line->evalExpression(++tokpos);
 	st_value &val = result.first;
 
-	// If its already a string just return it 
-	if (val.type == TYPE_STR) return { val, result.second };
+	if (val.type == TYPE_LIST)
+	{
+		// SPROC_STR:  [1 2 [3 4]] -> "[1 2 [3 4]]" or
+		// SPROC_SSTR: [1 2 [3 4]] -> "1 2 3 4"
+		return { st_value(sproc == SPROC_STR ? 
+			val.listline->listToString() :
+			val.listline->toSimpleString()
+			), result.second };
+	}
 
-	if (val.type == TYPE_NUM)
-		return { st_value(numToString(val.num)), result.second };
-	throw t_error({ ERR_CANT_CONVERT,line->tokens[tokpos].toString() });
-	return { };
+	// Anything else
+	return { st_value(val.str), result.second };
+}
+
+
+
+
+t_result procSplit(st_line *line, size_t tokpos)
+{
+	// Get seperator
+	t_result res = line->evalExpression(++tokpos);
+	string sep = res.first.str;
+	if (res.first.type != TYPE_STR || !sep.length())
+		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
+	tokpos = res.second;
+
+	// Get string to split
+	if (line->isExprEnd(tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
+	res = line->evalExpression(tokpos);
+	if (res.first.type != TYPE_STR)
+		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].strval });
+	string &str = res.first.str;
+
+	shared_ptr<st_line> listline = make_shared<st_line>(true);
+	size_t pos = 0;
+	size_t epos;
+	size_t len = str.length();
+	string ss;
+
+	while(true)
+	{
+		epos = str.find(sep,pos);
+		if (epos == string::npos) 
+		{
+			ss = str.substr(pos,len - pos);
+			listline->addToken(TYPE_STR,ss);
+			break;
+		}
+		ss = str.substr(pos,epos-pos);
+		listline->addToken(TYPE_STR,ss);
+		pos = epos + 1;
+	}
+	return { st_value(listline), res.second };
 }
 
 
@@ -600,12 +651,10 @@ t_result procDir(st_line *line, size_t tokpos)
 	DIR *dir;
 	struct dirent *de;
 	struct stat fs;
-	shared_ptr<st_line> listline = make_shared<st_line>();
+	shared_ptr<st_line> listline = make_shared<st_line>(true);
 
 	if (!(dir = opendir(dirname.c_str())))
 		throw t_error({ ERR_OPEN_FAIL, line->tokens[tokpos].toString() });
-	listline->type = LINE_LIST;
-
 	string file;
 	string entry;
 	string path;
@@ -803,8 +852,7 @@ t_result procPad(st_line *line, size_t tokpos)
 {
 	int sproc = line->tokens[tokpos].subtype;
 
-	if (line->isExprEnd(++tokpos))
-		throw t_error({ ERR_MISSING_ARG, "" });
+	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 	
 	// Get string to pad
 	t_result rstr = line->evalExpression(tokpos);
@@ -814,8 +862,7 @@ t_result procPad(st_line *line, size_t tokpos)
 	string str = rstr.first.str;
 
 	// Get what to pad with 
-	if (line->isExprEnd(tokpos))
-		throw t_error({ ERR_MISSING_ARG, "" });
+	if (line->isExprEnd(tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 	rstr = line->evalExpression(tokpos);
 	string &padstr = rstr.first.str;
 	if (rstr.first.type != TYPE_STR || padstr.size() != 1)
@@ -823,8 +870,7 @@ t_result procPad(st_line *line, size_t tokpos)
 	tokpos = rstr.second;
 
 	// Get pad length
-	if (line->isExprEnd(tokpos))
-		throw t_error({ ERR_MISSING_ARG, "" });
+	if (line->isExprEnd(tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 	t_result rnum = line->evalExpression(tokpos);
 	if (rnum.first.type != TYPE_NUM || rnum.first.num < 1)
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].strval });
@@ -838,4 +884,22 @@ t_result procPad(st_line *line, size_t tokpos)
 			str += string(padlen,padstr[0]);
 	}
 	return { st_value(str), rnum.second };
+}
+
+
+
+
+t_result procList(st_line *line, size_t tokpos)
+{
+	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
+	
+	// Get string to pad
+	t_result rstr = line->evalExpression(tokpos);
+	if (rstr.first.type != TYPE_STR)
+		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].strval });
+
+	shared_ptr<st_line> listline = make_shared<st_line>(true);
+	listline->tokenise(rstr.first.str);
+
+	return { st_value(listline), rstr.second };
 }

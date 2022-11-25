@@ -1233,3 +1233,13 @@ size_t comAngleMode(st_line *line, size_t tokpos)
 	setGlobalVarValue("$angle_mode",angle_in_degs ? "DEG" : "RAD");
 	return tokpos + 1;
 }
+
+
+
+
+/*** Clears the text terminal window ***/
+size_t comCT(st_line *line, size_t tokpos)
+{
+	cout << "\033[2J\033[H" << flush;
+	return tokpos + 1;
+}

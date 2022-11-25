@@ -1,11 +1,10 @@
+PLOAD command
+allow wildcards in load/dir path
 fmt with no int or float part
 create window on fly if in console mode
 
 Wish list for a rainy day:
-	wildcards in load/dir
 	number formatting
 	print procs to printer
 	Text in graphics window
-	File I/O
-	Networking
-	multi process/IPC
+	Save/load window picture 

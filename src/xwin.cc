@@ -110,7 +110,6 @@ void xInit()
 	// Don't kill process when window closed, send ClientMessage instead
 	delete_notify = XInternAtom(display,"WM_DELETE_WINDOW",True);
 	XSetWMProtocols(display,win,&delete_notify,1);
-	XAutoRepeatOff(display);
 
 	if (map_window)
 	{
