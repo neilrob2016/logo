@@ -1,22 +1,38 @@
 #include "globals.h"
 
 
-void loadProgram(string filename)
+void loadProcFile(string filename)
 {
+	string matchpath;
+        en_error err;
+	char *str;
 	int fd;
 
-	do
+	// Expand the path
+	for(int i=0;i < 2;++i)
 	{
-		if ((fd = open(filename.c_str(),O_RDONLY)) == -1)
+		// Can usually modify c_str() directly these days but best not
+		// just to be safe.
+		assert((str = strdup(filename.c_str())));
+        	err = matchPath(S_IFREG,str,matchpath);
+		free(str);
+
+		if (err != OK)
 		{
 			// If we don't have .lg on end append then try again
 			if (filename.size() < 3 ||
 			    filename.substr(filename.size()-3,3) != LOGO_FILE_EXT)
+			{
 				filename += LOGO_FILE_EXT;
-			else
-				throw t_error({ ERR_OPEN_FAIL, "" });
+			}
+			else throw t_error({ err, filename });
 		}
-	} while(fd == -1);
+		else break;
+	}	
+	cout << "Loading file \"" << matchpath << "\"...\n";
+
+	if ((fd = open(matchpath.c_str(),O_RDONLY)) == -1)
+		throw t_error({ ERR_OPEN_FAIL, matchpath });
 
 	size_t proc_cnt = user_procs.size();
 	st_io file;
@@ -147,6 +163,7 @@ void printRunError(int errnum, const char *tokstr)
 	case ERR_OPEN_FAIL:
 	case ERR_READ_FAIL:
 	case ERR_WRITE_FAIL:
+	case ERR_STAT_FAIL:
 	case ERR_CD_FAIL:
 		printf(": %s\n",strerror(errno));
 		break;

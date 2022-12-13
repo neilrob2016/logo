@@ -11,14 +11,14 @@
 #include "globals.h"
 #include "build_date.h"
 
-string loadfile;
-string runtext;
+static string loadfile;
+static string runtext;
 
-void parseCmdLine(int argc, char **argv);
-void version(bool short_ver);
-void mainloop();
-void init(bool startup);
-void sigHandler(int sig);
+static void parseCmdLine(int argc, char **argv);
+static void version(bool short_ver);
+static void mainloop();
+static void init(bool startup);
+static void sigHandler(int sig);
 
 
 int main(int argc, char **argv)
@@ -102,7 +102,7 @@ void parseCmdLine(int argc, char **argv)
 	       "       -d <X display>  : Default = NULL\n"
 	       "       -w <win width>  : Default = %d\n"
 	       "       -h <win height> : Default = %d\n"
-	       "       -l <filename>   : Program file to load at startup.\n"
+	       "       -l <filename>   : Procedure file to load at startup.\n"
 	       "       -r <text>       : Code or procedure to run immediately.\n"
 	       "       -c <lines>      : Max number of console history lines. Default = %d\n"
 	       "       -i              : Indent procedure listings between LABEL and GO.\n"
@@ -228,10 +228,9 @@ void init(bool startup)
 
 	if (loadfile != "")
 	{
-		cout << "Loading '" << loadfile << "'...\n";
 		try
 		{
-			loadProgram(loadfile);
+			loadProcFile(loadfile);
 		}
 		catch(t_error &err)
 		{

@@ -1,10 +1,10 @@
+Todo:
 PLOAD command
-allow wildcards in load/dir path
-fmt with no int or float part
-create window on fly if in console mode
+Switch to window mode and create window on fly if in console mode
+Save/load window picture 
 
-Wish list for a rainy day:
-	number formatting
-	print procs to printer
-	Text in graphics window
-	Save/load window picture 
+Rainy day:
+number formatting
+print procs to printer
+Text in graphics window
+fmt with no int or float part

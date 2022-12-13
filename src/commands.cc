@@ -882,11 +882,11 @@ size_t comSave(st_line *line, size_t tokpos)
 
 	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 
-	// Get filename
+	// Get filepath
 	t_result result = line->evalExpression(tokpos);
 	if (result.first.type != TYPE_STR || result.first.str == "")
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
-	string &filename = result.first.str;
+	string &filepath = result.first.str;
 	string procname;
 	size_t endpos;
 
@@ -915,13 +915,42 @@ size_t comSave(st_line *line, size_t tokpos)
 	}
 
 	// If no .lg on end then add it
-	if (filename.size() < 3 ||
-	    filename.substr(filename.size()-3,3) != LOGO_FILE_EXT)
-		filename += LOGO_FILE_EXT;
+	if (filepath.size() < 3 ||
+	    filepath.substr(filepath.size()-3,3) != LOGO_FILE_EXT)
+		filepath += LOGO_FILE_EXT;
 
+	// If we have a path match it for wildcards
 	FILE *fp;
-	if (!(fp = fopen(filename.c_str(),"w")))
-		throw t_error({ ERR_OPEN_FAIL, line->tokens[tokpos].toString() });
+	size_t slashpos = filepath.rfind("/");
+	if (slashpos != string::npos)
+	{
+		// Get rid of section after final slash.
+		// eg: /a/b/c/myfile -> /a/b/c
+		string dirname = filepath.substr(0,slashpos);
+		string matchpath;
+		en_error err;
+		char *str;
+
+		// matchPoint() modifies str so can't pass c_str() direct
+		assert((str = strdup(dirname.c_str())));
+		err = matchPath(S_IFDIR,str,matchpath);
+		free(str);
+		if (err != OK)
+		{
+			throw t_error({ err, line->tokens[tokpos].toString() });
+		}
+		matchpath += "/";
+		matchpath += filepath.substr(slashpos+1);
+		cout << "Saving to file \"" << matchpath << "\"...\n";
+		fp = fopen(matchpath.c_str(),"w");
+	}
+	else
+	{
+		cout << "Saving to file \"" << filepath << "\"...\n";
+		fp = fopen(filepath.c_str(),"w");
+	}
+
+	if (!fp) throw t_error({ ERR_OPEN_FAIL, line->tokens[tokpos].toString() });
 
 	int cnt = 0;
 	try
@@ -956,12 +985,12 @@ size_t comLoad(st_line *line, size_t tokpos)
 {
 	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 
-	// Get filename
+	// Get filepath
 	t_result result = line->evalExpression(tokpos);
 	if (result.first.type != TYPE_STR || result.first.str == "")
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
-
-	loadProgram(result.first.str);
+	// Wildcard path matching done in loadProcFile()
+	loadProcFile(result.first.str);
 	return result.second;
 }
 

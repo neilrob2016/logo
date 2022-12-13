@@ -29,7 +29,6 @@ September 2021
 - Changed format turtle facts TF command output.
 
 
-
 November 2022
 =============
 1.3.0
@@ -43,3 +42,12 @@ November 2022
 - Changed PRN call to PR in linechars.lg (PRN became PR in an earlier version)
 - Removed positive value out of bounds errors from PIECE and ITEM.
 - No longer switches off X win auto repeat.
+
+
+December 2022
+=============
+1.4.0
+- Added PATH system procedure.
+- Wildcards and ~ in path for LOAD, SAVE, DIR and -l command line option now 
+  supported.
+- Fixed bug in Makefile

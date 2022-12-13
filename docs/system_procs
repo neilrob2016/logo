@@ -106,15 +106,13 @@ DIR
 DIR <directory path>
 
 This returns all the LOGO program files (those with a .lg extension) in a list.
-If no path is given it uses the current working directory. eg:
+If no path is given it uses the current working directory. Wildcards are
+supported eg:
 
-? DIR "examples"
-["winsize" "flower" "uproc" "if" "repeat" "label" "switch" "spin_turtle" "bg" "spin_flower" "celtic" "goto" "pencol"]
-? MAKE "d" DIR "examples"
-? :d
+? dir "../prog*"
 ["winsize" "flower" "uproc" "if" "repeat" "label" "switch" "spin_turtle" "bg" "spin_flower" "celtic" "goto" "pencol"]
 
-See: GETDIR
+See: GETDIR, PATH
 See commands: LOAD, SAVE, CD
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -397,6 +395,16 @@ Returns 1 if the result of the expression is a number. Eg:
 0
 
 See: STRP, LISTP
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PATH <wildcard path>
+
+Returns the first expanded path that matches the wildcard pattern given. eg:
+
+? path "/u*/??cal/b*"
+/usr/local/bin
+
+See: DIR
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PIECE <from> <to> [<list>]

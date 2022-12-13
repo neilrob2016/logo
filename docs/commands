@@ -25,7 +25,7 @@ CD <directory>
 
 Changes the current directory to the one given.
 
-Eg: CD "example_code"
+Eg: CD "programs"
 
 See: LOAD, SAVE, PSAVE
 See sysprocs: DIR, GETDIR
@@ -224,7 +224,7 @@ GO "<label>"
 
 Jump to the named LABEL. If no label is given then it defaults to "". The label
 name can be the result of an expression allowing switch type structures to be 
-created. See example_code/switch.lg
+created. See programs/switch.lg
 
 Eg:
 MAKE "lab" "x" LABEL "x" PR "hello" GO :lab
@@ -324,7 +324,7 @@ LABEL-GO is one of the 2 looping constructs available in LOGO along with
 REPEAT. The label command takes a string label name which is used by GO to 
 jump either forwards or backwards to. DLABEL is simply a default anonymous label
 which will be jumped to by GO if its string does not match any other label.
-This allows simple switch type constructs to be created. See example_code/switch.lg
+This allows simple switch type constructs to be created. See programs/switch.lg
 
 Eg:
 LABEL "x" pr "loop" go "x"
@@ -337,10 +337,11 @@ LOAD <path>
 
 This loads all the LOGO procedures found in the file and directly executes
 any statements in the file not in a procedure**. If the .lg file extension is
-not given then it is automatically appended.
+not given then it is automatically appended. Wildcards are supported.
 
-Eg: LOAD "example_code/flower"
-    LOAD "example_code/flower.lg"
+Eg: LOAD "programs/flower"
+    LOAD "programs/flower.lg"
+    LOAD "prog*/??ower.lg"
 
 ** Direct statements cannot be saved into a file by LOGO, they must be added
    in an external editor.
@@ -609,16 +610,17 @@ PSAVE "<file path>" "<procedure to save>"
 
 SAVE saves all the user procedures defined in memory into the given file. If
 the Logo extension .lg is not given then it is appended. PSAVE only saves the
-single procedure name given. Eg:
+single procedure name given. Wildcards are supported in the directory portion
+of the path Eg:
 
 ? pots
 User procedures
 ---------------
 TO flower :cnt 
 TO circles :cnt 
-? save "test"
+? save "../pro*/test"
 Saved 2 procedures.
-? psave "test2" "circles"
+? psave "test2" "../??ograms/circles"
 Saved 1 procedures.
 
 See: LOAD, CD

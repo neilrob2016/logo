@@ -392,7 +392,7 @@ t_result procRC(st_line *line, size_t tokpos)
 	int rr;
 	st_io rio;
 	rio.readInput(STDIN,(bool)val.num,true,false,rr);
-	return { st_value(rio.rdline.c_str()), result.second };
+	return { st_value(rio.rdline), result.second };
 }
 
 
@@ -409,7 +409,7 @@ t_result procRL(st_line *line, size_t tokpos)
 	int rr;
 	st_io rio;
 	while(!rio.readInput(STDIN,(bool)val.num,false,false,rr));
-	return { st_value(rio.rdline.c_str()), result.second };
+	return { st_value(rio.rdline), result.second };
 }
 
 
@@ -631,6 +631,7 @@ t_result procMatch(st_line *line, size_t tokpos)
 t_result procDir(st_line *line, size_t tokpos)
 {
 	string dirname;
+	string matchpath;
 	size_t endpos;
 
         // Get dirname. If there isn't one default to "."
@@ -642,19 +643,25 @@ t_result procDir(st_line *line, size_t tokpos)
 	else
 	{
 		t_result result = line->evalExpression(tokpos);
-		if (result.first.type != TYPE_STR)
+		if (result.first.type != TYPE_STR || !result.first.str.length())
 			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
 		dirname = result.first.str;
 		endpos = result.second;
 	}
+	en_error err;
+	char *str;
+	assert((str = strdup(dirname.c_str())));
+	err = matchPath(S_IFDIR,(char *)dirname.c_str(),matchpath);
+	free(str);
+	if (err != OK) throw t_error({ err, line->tokens[tokpos].toString() });
 
 	DIR *dir;
 	struct dirent *de;
 	struct stat fs;
 	shared_ptr<st_line> listline = make_shared<st_line>(true);
 
-	if (!(dir = opendir(dirname.c_str())))
-		throw t_error({ ERR_OPEN_FAIL, line->tokens[tokpos].toString() });
+	if (!(dir = opendir(matchpath.c_str())))
+		throw t_error({ ERR_OPEN_FAIL, matchpath });
 	string file;
 	string entry;
 	string path;
@@ -902,4 +909,28 @@ t_result procList(st_line *line, size_t tokpos)
 	listline->tokenise(rstr.first.str);
 
 	return { st_value(listline), rstr.second };
+}
+
+
+
+
+t_result procPath(st_line *line, size_t tokpos)
+{
+	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
+	
+	// Get path to expand
+	t_result path = line->evalExpression(tokpos);
+	if (path.first.type != TYPE_STR)
+		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].strval });
+
+	string matchpath;
+	en_error err;
+	char *str;
+
+	assert((str = strdup(path.first.str.c_str())));
+	err = matchPath(S_IFDIR,str,matchpath);
+	free(str);
+
+	if (err == OK) return { st_value(matchpath), path.second };
+	return { st_value(""), path.second };
 }

@@ -19,18 +19,19 @@ OBJS=\
 	commands.o \
 	sys_procs.o \
 	vars.o \
+	path.o \
 	xwin.o \
 	misc.o 
 
 DEPS=globals.h Makefile
 
-logo: build_date $(OBJS) Makefile
+logo: $(OBJS) Makefile
 	$(CC) $(OBJS) $(LIBPATH) $(LIBS) -o logo
 
 build_date:
 	echo "#define BUILD_DATE \"`date +'%Y-%m-%d %T %Z'`\"" > build_date.h
 
-main.o: main.cc $(DEPS)
+main.o: main.cc $(DEPS) build_date
 	$(COMP) main.cc
 
 st_io.o: st_io.cc $(DEPS)
@@ -63,8 +64,11 @@ commands.o: commands.cc $(DEPS)
 sys_procs.o: sys_procs.cc $(DEPS)
 	$(COMP) sys_procs.cc
 
-vars.o: vars.cc $(DEPS)
+vars.o: vars.cc $(DEPS) build_date
 	$(COMP) vars.cc
+
+path.o: path.cc $(DEPS)
+	$(COMP) path.cc
 
 xwin.o: xwin.cc $(DEPS)
 	$(COMP) xwin.cc

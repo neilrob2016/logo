@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <time.h>
+#include <pwd.h>
 #include <errno.h>
 #include <assert.h>
 #include <sys/stat.h>
@@ -40,7 +41,7 @@ using namespace std;
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
 #define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2022"
-#define LOGO_VERSION     "1.3.0"
+#define LOGO_VERSION     "1.4.0"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths
@@ -304,7 +305,7 @@ enum en_sproc
 	SPROC_NUM,
 	SPROC_STR,
 	SPROC_SSTR,
-	SPROC_LIST,
+	SPROC_SPLIT,
 
 	// 25
 	SPROC_RANDOM,
@@ -342,7 +343,8 @@ enum en_sproc
 	SPROC_RPAD,
 
 	// 50
-	SPROC_PARSE,
+	SPROC_LIST,
+	SPROC_PATH,
 
 	NUM_SPROCS
 };
@@ -404,14 +406,19 @@ enum en_error
 	ERR_OPEN_FAIL,
 	ERR_READ_FAIL,
 	ERR_WRITE_FAIL,
-	ERR_CD_FAIL,
+	ERR_STAT_FAIL,
 
 	// 40
+	ERR_CD_FAIL,
 	ERR_INVALID_HIST_CMD,
 	ERR_TURTLE_OUT_OF_BOUNDS,
 	ERR_CANT_FILL,
 	ERR_CANT_RESTART,
+
+	// 45
 	ERR_INVALID_FMT,
+	ERR_INVALID_PATH,
+	ERR_PATH_TOO_LONG,
 
 	NUM_ERRORS
 };
@@ -821,14 +828,19 @@ const char *error_str[NUM_ERRORS] =
 	"Open failed",
 	"Read failed",
 	"Write failed",
-	"Change directory failed",
+	"Stat failed",
 
 	// 40
+	"Change directory failed",
 	"Invalid history command number",
 	"Turtle out of bounds",
 	"Cannot FILL when turtle is wrapped",
 	"Cannot RESTART while doing initial load",
-	"Invalid format"
+
+	// 45
+	"Invalid format",
+	"Invalid path or path not found",
+	"Path too long"
 };
 
 
@@ -1018,6 +1030,7 @@ t_result procFmt(st_line *line, size_t tokpos);
 t_result procPad(st_line *line, size_t tokpos);
 t_result procSplit(st_line *line, size_t tokpos);
 t_result procList(st_line *line, size_t tokpos);
+t_result procPath(st_line *line, size_t tokpos);
 
 // vars.cc
 void     setSystemVars();
@@ -1026,8 +1039,11 @@ void     clearGlobalVariables();
 st_value getVarValue(string &name);
 t_var_map::iterator getGlobalVar(string &name);
 
+// path.cc
+en_error matchPath(int type, char *pat, string &matchpath, bool toplevel = true);
+
 // misc.cc
-void   loadProgram(string filename);
+void   loadProcFile(string filename);
 bool   isNumber(string str);
 string numToString(double num);
 bool   wildMatch(const char *str, const char *pat, bool case_sensitive);
@@ -1239,7 +1255,10 @@ pair<const char *,function<t_result(st_line *, size_t)>> sysprocs[NUM_SPROCS] =
 	{ "FMT",    procFmt },
 	{ "LPAD",   procPad },
 	{ "RPAD",   procPad },
-	{ "LIST",   procList }
+
+	// 50
+	{ "LIST",   procList },
+	{ "PATH",   procPath }
 };
 #else
 extern pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS];

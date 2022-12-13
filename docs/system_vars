@@ -1,14 +1,16 @@
                        *** System global variables ***
 
+Use the PONS command to list them.
+
 Fixed at boot:
-	$num_colours is 106
-	$degs_per_rad is 57.295780
-	$file_extension is ".lg"
-	$interpreter is "NRJ-LOGO"
-	$e is 2.718282
-	$pi is 3.141593
-	$copyright is "Copyright (C) Neil Robertson 2020"
-	$version is "1.0.0"
+	$num_colours
+	$degs_per_rad
+	$file_extension
+	$interpreter
+	$e
+	$pi
+	$copyright
+	$version
 	$build_date
 	$username
 	$pid
