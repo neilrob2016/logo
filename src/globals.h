@@ -41,7 +41,7 @@ using namespace std;
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
 #define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2022"
-#define LOGO_VERSION     "1.4.0"
+#define LOGO_VERSION     "1.4.1"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths

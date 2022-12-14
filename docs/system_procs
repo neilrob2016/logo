@@ -399,10 +399,13 @@ See: STRP, LISTP
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PATH <wildcard path>
 
-Returns the first expanded path that matches the wildcard pattern given. eg:
+Returns the path if it exists else an empty string. It expands wildcards. eg:
 
 ? path "/u*/??cal/b*"
 /usr/local/bin
+? path "/nosuchdir/blah"
+
+?
 
 See: DIR
 

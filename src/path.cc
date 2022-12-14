@@ -1,7 +1,5 @@
 #include "globals.h"
 
-// Prevents endless looping 
-#define MAX_DEPTH 100
 
 /*** Get the path of a given user ***/
 static inline char *getUserDir(char *name, string &matchpath)
@@ -27,31 +25,15 @@ static inline char *getUserDir(char *name, string &matchpath)
      substr()'ing ***/
 en_error matchPath(int type, char *pat, string &matchpath, bool toplevel)
 {
-	DIR *dir;
-	struct dirent *de;
-	struct stat fs;
-	string path;
-	en_error err;
-	char *ptr;
-	int stat_type;
-
 	if (matchpath.length() >= PATH_MAX) return ERR_PATH_TOO_LONG;
+
+	string path;
 
 	// Set up initial dir to read 
 	if (toplevel)
 	{
 		matchpath = "";
 
-		/* First check to see if there's any wildcards in the pattern.
-		   If not then just return it as result */
-		for(ptr=pat;
-		    *ptr && *ptr != '*' && *ptr != '?' && *ptr != '~';
-		    ++ptr);
-		if (!*ptr)
-		{
-			matchpath = pat;
-			return OK;
-		}
 		if (*pat == '/')
 		{
 			matchpath = "/";
@@ -85,7 +67,15 @@ en_error matchPath(int type, char *pat, string &matchpath, bool toplevel)
 		if (!*pat) return OK;
 	}
 
+	DIR *dir;
+
 	if (!(dir = opendir(matchpath.c_str()))) return ERR_OPEN_FAIL;
+
+	struct dirent *de;
+	struct stat fs;
+	en_error err;
+	int stat_type;
+	char *ptr;
 
 	// Get section of pattern to match 
 	if ((ptr = strchr(pat,'/'))) *ptr = 0;

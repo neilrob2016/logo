@@ -1,4 +1,7 @@
 Todo:
+-O2 -> -O
+path will happily return an invalid path if no wildcards
+don't need "err = " in recursive matchPath() call
 PLOAD command
 Switch to window mode and create window on fly if in console mode
 Save/load window picture 
