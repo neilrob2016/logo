@@ -18,6 +18,8 @@ OBJS=\
 	st_turtle_line.o \
 	commands.o \
 	sys_procs.o \
+	strings.o \
+	files.o \
 	vars.o \
 	path.o \
 	xwin.o \
@@ -63,6 +65,12 @@ commands.o: commands.cc $(DEPS)
 
 sys_procs.o: sys_procs.cc $(DEPS)
 	$(COMP) sys_procs.cc
+
+strings.o: strings.cc $(DEPS) build_date
+	$(COMP) strings.cc
+
+files.o: files.cc $(DEPS) build_date
+	$(COMP) files.cc
 
 vars.o: vars.cc $(DEPS) build_date
 	$(COMP) vars.cc

@@ -419,7 +419,7 @@ t_result procRL(st_line *line, size_t tokpos)
      [<xpos> <ypos> <heading> <visible 1/0> <pen down 1/0> <pen colour> ***/
 t_result procTF(st_line *line, size_t tokpos)
 {
-	if (!do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
 	return { st_value(turtle->facts()), tokpos + 1 };
 }
 
@@ -562,26 +562,26 @@ t_result procMaths(st_line *line, size_t tokpos)
 	case SPROC_ROUND:
 		return { st_value(roundf(val.num)), result.second };
 	case SPROC_SIN:
-		trigval = sin(val.num / (angle_in_degs ? DEGS_PER_RADIAN : 1));
+		trigval = sin(val.num / (flags.angle_in_degs ? DEGS_PER_RADIAN : 1));
 		return { st_value(trigval), result.second };
 	case SPROC_COS:
-		trigval = cos(val.num / (angle_in_degs ? DEGS_PER_RADIAN : 1));
+		trigval = cos(val.num / (flags.angle_in_degs ? DEGS_PER_RADIAN : 1));
 		return { st_value(trigval), result.second };
 	case SPROC_TAN:
-		trigval = tan(val.num / (angle_in_degs ? DEGS_PER_RADIAN : 1));
+		trigval = tan(val.num / (flags.angle_in_degs ? DEGS_PER_RADIAN : 1));
 		return { st_value(trigval), result.second };
 	case SPROC_ASIN:
 		if (val.num < -1 || val.num > 1)
 			throw t_error({ ERR_VALUE_OUT_OF_RANGE, tok.toString() });
-		trigval = asin(val.num) * (angle_in_degs ? DEGS_PER_RADIAN : 1);
+		trigval = asin(val.num) * (flags.angle_in_degs ? DEGS_PER_RADIAN : 1);
 		return { st_value(trigval), result.second };
 	case SPROC_ACOS:
 		if (val.num < -1 || val.num > 1)
 			throw t_error({ ERR_VALUE_OUT_OF_RANGE, tok.toString() });
-		trigval = acos(val.num) * (angle_in_degs ? DEGS_PER_RADIAN : 1);
+		trigval = acos(val.num) * (flags.angle_in_degs ? DEGS_PER_RADIAN : 1);
 		return { st_value(trigval), result.second };
 	case SPROC_ATAN:
-		trigval = atan(val.num) * (angle_in_degs ? DEGS_PER_RADIAN : 1);
+		trigval = atan(val.num) * (flags.angle_in_degs ? DEGS_PER_RADIAN : 1);
 		return { st_value(trigval), result.second };
 	case SPROC_LOG:
 		return { st_value(logf(val.num)), result.second };

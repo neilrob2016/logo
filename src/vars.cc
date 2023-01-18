@@ -12,7 +12,7 @@ void setSystemVars()
 	setGlobalVarValue("$build_date",BUILD_DATE);
 	setGlobalVarValue("$num_colours",NUM_COLOURS);
 	setGlobalVarValue("$file_extension",LOGO_FILE_EXT);
-	setGlobalVarValue("$angle_mode",angle_in_degs ? "DEG" : "RAD");
+	setGlobalVarValue("$angle_mode",flags.angle_in_degs ? "DEG" : "RAD");
 
 	// LOGO isn't a system programming language so just provide the
 	// minimum of system info.

@@ -56,3 +56,13 @@ December 2022
 1.4.1
 - Removed some code added to path.cc in 1.4.0 that broke path checking.
 - Removed disused macro from path.cc
+
+
+January 2023
+============
+1.4.2
+- Added procedure name option to LOAD command.
+- Added procedure name option to SAVE command and so removed redundant PSAVE.
+- Fixed bugs in SAVE whereby a path with wildcards wasn't always expanded 
+  correctly or failed to expand at all.
+- Module and code restructuring.

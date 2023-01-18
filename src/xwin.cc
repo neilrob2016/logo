@@ -111,10 +111,10 @@ void xInit()
 	delete_notify = XInternAtom(display,"WM_DELETE_WINDOW",True);
 	XSetWMProtocols(display,win,&delete_notify,1);
 
-	if (map_window)
+	if (flags.map_window)
 	{
 		XMapWindow(display,win);
-		window_mapped = true;
+		flags.window_mapped = true;
 	}
 }
 
@@ -221,11 +221,11 @@ void xWindowClear()
 
 void xWindowMap()
 {
-	if (do_graphics)
+	if (flags.do_graphics)
 	{
 		XMapWindow(display,win);
 		XFlush(display);
-		window_mapped = true;
+		flags.window_mapped = true;
 	}
 	else throw t_error({ ERR_NO_GRAPHICS, "" });
 }
@@ -235,11 +235,11 @@ void xWindowMap()
 
 void xWindowUnmap()
 {
-	if (do_graphics)
+	if (flags.do_graphics)
 	{
 		XUnmapWindow(display,win);
 		XFlush(display);
-		window_mapped = false;
+		flags.window_mapped = false;
 	}
 	else throw t_error({ ERR_NO_GRAPHICS, "" });
 }

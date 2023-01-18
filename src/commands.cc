@@ -49,13 +49,20 @@ size_t comTo(st_line *line, size_t tokpos)
 {
 	st_token &tok = line->tokens[++tokpos];
 
-	if (logo_state == STATE_DEF_PROC)
+	if (logo_state == STATE_DEF_PROC || logo_state == STATE_IGN_PROC)
 		throw t_error({ ERR_UNEXPECTED_TO, "" });
 	if (tok.type != TYPE_UPROC)
 		throw t_error({ ERR_INVALID_ARG, tok.toString() });
 
-	// See if precedure is already defined 
 	string &name = tok.strval;
+
+	if (loadproc != "" && name != loadproc)
+	{
+		logo_state = STATE_IGN_PROC;
+		return line->tokens.size();
+	}
+
+	// See if procedure is already defined 
 	if (user_procs.find(name) != user_procs.end())
 		throw t_error({ ERR_DUP_DECLARATION, name });
 
@@ -95,14 +102,17 @@ size_t comTo(st_line *line, size_t tokpos)
 
 size_t comEnd(st_line *line, size_t tokpos)
 {
-	if (logo_state != STATE_DEF_PROC)
+	if (logo_state != STATE_DEF_PROC && logo_state != STATE_IGN_PROC)
 		throw t_error({ ERR_UNEXPECTED_END, "" });
 
 	// Can't have anything following
 	if (tokpos < line->tokens.size() - 1)
 		throw t_error({ ERR_UNEXPECTED_ARG, line->tokens[tokpos+1].toString() });
-	user_procs[def_proc->name] = def_proc;
-	cout << "Procedure \"" << def_proc->name << "\" defined.\n";
+	if (logo_state == STATE_DEF_PROC)
+	{
+		user_procs[def_proc->name] = def_proc;
+		cout << "Procedure \"" << def_proc->name << "\" defined.\n";
+	}
 	logo_state = STATE_CMD;
 	return tokpos + 1;
 }
@@ -179,7 +189,7 @@ size_t comErall(st_line *line, size_t tokpos)
 
 	if (com == COM_ERV || com == COM_ERALL)
 	{
-		if (com == COM_ERALL) angle_in_degs = true;
+		if (com == COM_ERALL) flags.angle_in_degs = true;
 		clearGlobalVariables();
 		puts("Global variables deleted and system variables reset.");
 	}
@@ -313,9 +323,9 @@ size_t comPosf(st_line *line, size_t tokpos)
 {
 	puts("System flags");
 	puts("------------");
-	printf("Indentation is %s.\n",indent_label_blocks ? "on" : "off");
+	printf("Indentation is %s.\n",flags.indent_label_blocks ? "on" : "off");
 	printf("Fill is %s.\n",
-		do_graphics && turtle->store_fill ? "on" : "off");
+		flags.do_graphics && turtle->store_fill ? "on" : "off");
 	
 	return tokpos + 1;
 }
@@ -498,11 +508,11 @@ size_t comRun(st_line *line, size_t tokpos)
 			break;
 		case TYPE_STR:
 			{
-			bool tmp = suppress_prompt;
-			suppress_prompt = true;
+			bool tmp = flags.suppress_prompt;
+			flags.suppress_prompt = true;
 			st_io tmpio;
 			tmpio.execText(result.first.str);
-			suppress_prompt = tmp;
+			flags.suppress_prompt = tmp;
 			}
 			break;
 		default:
@@ -690,7 +700,7 @@ size_t comOp(st_line *line, size_t tokpos)
      switch is worth the huge reduction in duplicated code ***/
 size_t comGraphics0Args(st_line *line, size_t tokpos)
 {
-	if (!do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
 
 	switch(line->tokens[tokpos].subtype)
 	{
@@ -750,7 +760,7 @@ size_t comGraphics0Args(st_line *line, size_t tokpos)
 /*** Graphics commands with 1 argument ***/
 size_t comGraphics1Arg(st_line *line, size_t tokpos)
 {
-	if (!do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
 
 	int com = line->tokens[tokpos].subtype;
 	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
@@ -768,11 +778,11 @@ size_t comGraphics1Arg(st_line *line, size_t tokpos)
 		turtle->move(-val.num);
 		break;
 	case COM_LT:
-		if (!angle_in_degs) val.num *= DEGS_PER_RADIAN;
+		if (!flags.angle_in_degs) val.num *= DEGS_PER_RADIAN;
 		turtle->rotate(-val.num);
 		break;
 	case COM_RT:
-		if (!angle_in_degs) val.num *= DEGS_PER_RADIAN;
+		if (!flags.angle_in_degs) val.num *= DEGS_PER_RADIAN;
 		turtle->rotate(val.num);
 		break;
 	case COM_SETPC:
@@ -814,7 +824,7 @@ size_t comGraphics1Arg(st_line *line, size_t tokpos)
      silly to me so here it takes 2 normal arguments ***/
 size_t comGraphics2Args(st_line *line, size_t tokpos)
 {
-	if (!do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
 	if (line->tokens.size() - tokpos < 2)
 		throw t_error({ ERR_MISSING_ARG, "" });
 
@@ -866,20 +876,18 @@ size_t comGraphics2Args(st_line *line, size_t tokpos)
 /*** Toggle indenting of label blocks in procedure listings on and off ***/
 size_t comSetInd(st_line *line, size_t tokpos)
 {
-	indent_label_blocks = !indent_label_blocks;
+	flags.indent_label_blocks = !flags.indent_label_blocks;
 	printf("User procedure label block indenting %s.\n",
-		indent_label_blocks ? "on" : "off");
+		flags.indent_label_blocks ? "on" : "off");
 	return tokpos + 1;
 }
 
 
 
 
-/*** PSAVE & SAVE - Save 1 or all procedures to the file respectively ***/
+/*** Save 1 or all procedures to a file ***/
 size_t comSave(st_line *line, size_t tokpos)
 {
-	int com = line->tokens[tokpos].subtype;
-
 	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 
 	// Get filepath
@@ -888,93 +896,37 @@ size_t comSave(st_line *line, size_t tokpos)
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
 	string &filepath = result.first.str;
 	string procname;
-	size_t endpos;
+	size_t endpos = result.second;
+	bool psave = false;
 
-	// If PSAVE then we need the procedure name too
-	if (com == COM_PSAVE)
+	// See if we have an optional procedure name 
+	if (!line->isExprEnd(endpos))
 	{
-		endpos = result.second;
-		if (line->isExprEnd(endpos))
-			throw t_error({ ERR_MISSING_ARG, "" });
 		t_result result2 = line->evalExpression(endpos);
-		if (result2.first.type != TYPE_STR || result2.first.str == "")
+		if (result2.first.type != TYPE_STR)
 			throw t_error({ ERR_INVALID_ARG, line->tokens[endpos].toString() });
-		procname = result2.first.str;
-		if (user_procs.find(procname) == user_procs.end())
-			throw t_error({ ERR_UNDEFINED_UPROC, procname });
 		endpos = result2.second;
-	}
-	else
-	{
-		if (user_procs.empty())
+		if ((procname = result2.first.str) != "")
 		{
-			cout << "No user procedures to save.\n";
-			return result.second;
+			if (user_procs.find(procname) == user_procs.end())
+				throw t_error({ ERR_UNDEFINED_UPROC, procname });
+			psave = true;
 		}
-		endpos = result.second;
 	}
-
-	// If no .lg on end then add it
-	if (filepath.size() < 3 ||
-	    filepath.substr(filepath.size()-3,3) != LOGO_FILE_EXT)
-		filepath += LOGO_FILE_EXT;
-
-	// If we have a path match it for wildcards
-	FILE *fp;
-	size_t slashpos = filepath.rfind("/");
-	if (slashpos != string::npos)
+	else if (user_procs.empty())
 	{
-		// Get rid of section after final slash.
-		// eg: /a/b/c/myfile -> /a/b/c
-		string dirname = filepath.substr(0,slashpos);
-		string matchpath;
-		en_error err;
-		char *str;
-
-		// matchPoint() modifies str so can't pass c_str() direct
-		assert((str = strdup(dirname.c_str())));
-		err = matchPath(S_IFDIR,str,matchpath);
-		free(str);
-		if (err != OK)
-		{
-			throw t_error({ err, line->tokens[tokpos].toString() });
-		}
-		matchpath += "/";
-		matchpath += filepath.substr(slashpos+1);
-		cout << "Saving to file \"" << matchpath << "\"...\n";
-		fp = fopen(matchpath.c_str(),"w");
+		cout << "No user procedures to save.\n";
+		return endpos;
 	}
-	else
-	{
-		cout << "Saving to file \"" << filepath << "\"...\n";
-		fp = fopen(filepath.c_str(),"w");
-	}
-
-	if (!fp) throw t_error({ ERR_OPEN_FAIL, line->tokens[tokpos].toString() });
-
-	int cnt = 0;
 	try
 	{
-		for(auto &pr: user_procs)
-		{
-			if (com == COM_SAVE || procname == pr.first)
-			{
-				pr.second->dump(fp,true,false);
-				++cnt;
-				if (com == COM_PSAVE) break;
-			}
-			fputc('\n',fp);
-		}
+		saveProcFile(filepath,procname,psave);
 	}
 	catch(t_error &err)
 	{
-		if (err.first == ERR_WRITE_FAIL)
-			err.second = line->tokens[tokpos].strval;
-		fclose(fp);
+		err.second = line->tokens[tokpos].strval;
 		throw;
 	}
-	fclose(fp);
-	printf("Saved %d procedures.\n",cnt);
 	return endpos;
 }
 
@@ -983,14 +935,41 @@ size_t comSave(st_line *line, size_t tokpos)
 
 size_t comLoad(st_line *line, size_t tokpos)
 {
+	string filename;
+	string procname;
+	t_result result;
+
 	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
 
 	// Get filepath
-	t_result result = line->evalExpression(tokpos);
+	result = line->evalExpression(tokpos);
 	if (result.first.type != TYPE_STR || result.first.str == "")
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
+	filename = result.first.str;
+
+	// Get optional procedure name
+	if (!line->isExprEnd(++tokpos))
+	{
+		result = line->evalExpression(tokpos);
+		// Allow "" so can be used as string value for all procs
+		if (result.first.type != TYPE_STR)
+			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
+		procname = result.first.str;
+	}
+
 	// Wildcard path matching done in loadProcFile()
-	loadProcFile(result.first.str);
+	try
+	{
+		loadProcFile(filename,procname);
+	}
+	catch(...)
+	{
+		loadproc = "";
+		if (logo_state == STATE_IGN_PROC) logo_state = STATE_CMD;
+		throw;
+	}
+	loadproc = "";
+	if (logo_state == STATE_IGN_PROC) logo_state = STATE_CMD;
 	return result.second;
 }
 
@@ -1258,8 +1237,8 @@ size_t comSeed(st_line *line, size_t tokpos)
 /*** Sets the angle mode to degrees or radians ***/
 size_t comAngleMode(st_line *line, size_t tokpos)
 {
-	angle_in_degs = (line->tokens[tokpos].subtype == COM_DEG);
-	setGlobalVarValue("$angle_mode",angle_in_degs ? "DEG" : "RAD");
+	flags.angle_in_degs = (line->tokens[tokpos].subtype == COM_DEG);
+	setGlobalVarValue("$angle_mode",flags.angle_in_degs ? "DEG" : "RAD");
 	return tokpos + 1;
 }
 

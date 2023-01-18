@@ -130,7 +130,7 @@ bool st_io::readInput(
 		case -1:
 			if (errno == EINTR)
 			{
-				if (do_break)
+				if (flags.do_break)
 					throw t_interrupt({ INT_BREAK, "" });
 			}
 			return false;
@@ -403,7 +403,7 @@ bool st_io::execLine()
 	bool ret = true;
 
 	// Run the LOGO line
-	executing = true;
+	flags.executing = true;
 	try
 	{
 		line.parseAndExec(rdline);
@@ -422,7 +422,7 @@ bool st_io::execLine()
 		{
 		case INT_BREAK:
 			printStopMesg("BREAK");
-			do_break = false;
+			flags.do_break = false;
 			break;
 		case INT_STOP:
 			printStopMesg("STOP");
@@ -437,7 +437,7 @@ bool st_io::execLine()
 		}
 	}
 	addHistoryLine();
-	executing = false;
+	flags.executing = false;
 	reset();
 	prompt();
 	return ret;

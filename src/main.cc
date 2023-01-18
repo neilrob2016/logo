@@ -35,13 +35,14 @@ int main(int argc, char **argv)
 
 void parseCmdLine(int argc, char **argv)
 {
+	bzero(&flags,sizeof(flags));
+	flags.do_graphics = true;
+	flags.map_window = true;
+
 	win_width = WIN_WIDTH;
 	win_height = WIN_HEIGHT;
 	disp = NULL;
-	do_graphics = true;
-	map_window = true;
 	max_history_lines = MAX_HISTORY_LINES;
-	indent_label_blocks = false;
 
 	for(int i=1;i < argc;++i)
 	{
@@ -55,7 +56,7 @@ void parseCmdLine(int argc, char **argv)
 		}
 		if (opt == "-con")
 		{
-			do_graphics = false;
+			flags.do_graphics = false;
 			continue;
 		}
 		if (opt.length() != 2) goto USAGE;
@@ -63,10 +64,10 @@ void parseCmdLine(int argc, char **argv)
 		switch(opt[1])
 		{
 		case 'i':
-			indent_label_blocks = true;
+			flags.indent_label_blocks = true;
 			continue;
 		case 'u':
-			map_window = false;
+			flags.map_window = false;
 			continue;
 		}
 		if (++i == argc) goto USAGE;
@@ -153,7 +154,7 @@ void mainloop()
 	{
 		FD_ZERO(&mask);
 		FD_SET(STDIN,&mask);
-		if (do_graphics) FD_SET(x_sock,&mask);
+		if (flags.do_graphics) FD_SET(x_sock,&mask);
 
 		switch(select(FD_SETSIZE,&mask,0,0,0))
 		{
@@ -165,12 +166,14 @@ void mainloop()
 			// Timeout - should never happen
 			assert(0);
 		}
-		if (do_graphics && FD_ISSET(x_sock,&mask)) xParseEvent();
+		if (flags.do_graphics && FD_ISSET(x_sock,&mask)) xParseEvent();
 
 		if (FD_ISSET(STDIN,&mask) && 
 		    io.readInput(STDIN,true,false,true,rr))
 		{
 			if (rr == -1) exit(1);
+
+			loadproc = "";
 			try
 			{
 				io.parseInput();
@@ -193,22 +196,18 @@ void mainloop()
 /*** This can be called after startup if RESTART command called ***/
 void init(bool startup)
 {
-	executing = false;
-	suppress_prompt = false;
-	do_break = false;
+	flags.angle_in_degs = true;
 	tracing_mode = TRACING_OFF;
 	logo_state = STATE_CMD;
 	stop_proc = NULL;
 	curr_proc_inst = NULL;
 	nest_depth = 0;
-	angle_in_degs = true;
-	window_mapped = false;
 	srandom(time(0));
 	
 	if (startup)
 	{
 		setSystemVars();
-		if (do_graphics)
+		if (flags.do_graphics)
 		{
 			xInit();
 			turtle = new st_turtle;
@@ -230,7 +229,7 @@ void init(bool startup)
 	{
 		try
 		{
-			loadProcFile(loadfile);
+			loadProcFile(loadfile,"");
 		}
 		catch(t_error &err)
 		{
@@ -247,9 +246,9 @@ void init(bool startup)
 	if (runtext != "")
 	{
 		cout << "Running code...\n";
-		suppress_prompt = true; 
+		flags.suppress_prompt = true; 
 		io.execText(runtext);
-		suppress_prompt = false;
+		flags.suppress_prompt = false;
 	}
 }
 
@@ -258,7 +257,7 @@ void init(bool startup)
 
 void sigHandler(int sig)
 {
-	if (executing) do_break = true;
+	if (flags.executing) flags.do_break = true;
 	else
 	{
 		if (logo_state == STATE_DEF_PROC)

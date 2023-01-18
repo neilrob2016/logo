@@ -27,7 +27,7 @@ Changes the current directory to the one given.
 
 Eg: CD "programs"
 
-See: LOAD, SAVE, PSAVE
+See: LOAD, SAVE
 See sysprocs: DIR, GETDIR
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -333,20 +333,26 @@ DLABEL pr "loop" go ""
 See: GO
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOAD <path>
+LOAD "<path>" ["<procedure name>"]
 
-This loads all the LOGO procedures found in the file and directly executes
+This loads all the LOGO procedures found in the file (unless a specific name is
+given in which case it only loads that one) and directly executes
 any statements in the file not in a procedure**. If the .lg file extension is
 not given then it is automatically appended. Wildcards are supported.
 
 Eg: LOAD "programs/flower"
     LOAD "programs/flower.lg"
     LOAD "prog*/??ower.lg"
+    LOAD "myprocs" "proc1"
+
+Note that wildcards cannot be used in the optional procedure name but the
+name can be "" which means all files in case you wish to use a variable to
+determine what to load.
 
 ** Direct statements cannot be saved into a file by LOGO, they must be added
    in an external editor.
 
-See: SAVE, PSAVE, CD
+See: SAVE, CD
 See sysprocs: DIR, GETDIR
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -605,13 +611,14 @@ run :b
 See sysproc: EVAL
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SAVE  "<file path>"
-PSAVE "<file path>" "<procedure to save>"
+SAVE  "<file path>" ["<procedure name>"]
 
-SAVE saves all the user procedures defined in memory into the given file. If
-the Logo extension .lg is not given then it is appended. PSAVE only saves the
-single procedure name given. Wildcards are supported in the directory portion
-of the path Eg:
+SAVE saves all the user procedures defined in memory into the given file unless
+a specific procedure name is given in which case it only saves that one. If
+the Logo extension .lg is not given then it is appended. Wildcards are 
+supported in the directory portion of the path. Note that the procedure name 
+be "" which means all files in case you wish to use a variable to determine 
+what to save.
 
 ? pots
 User procedures
@@ -620,7 +627,7 @@ TO flower :cnt
 TO circles :cnt 
 ? save "../pro*/test"
 Saved 2 procedures.
-? psave "test2" "../??ograms/circles"
+? save "test2" "../??ograms/circles"
 Saved 1 procedures.
 
 See: LOAD, CD

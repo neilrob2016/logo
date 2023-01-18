@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <signal.h>
 #include <unistd.h>
 #include <termios.h>
@@ -19,13 +20,13 @@
 
 #include <iostream>
 #include <memory>
-#include <algorithm>
 #include <string>
 #include <vector>
 #include <deque>
 #include <stack>
 #include <map>
 #include <set>
+#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
@@ -40,8 +41,8 @@ using namespace std;
 
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
-#define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2022"
-#define LOGO_VERSION     "1.4.1"
+#define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2023"
+#define LOGO_VERSION     "1.4.2"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths
@@ -85,6 +86,7 @@ enum en_state
 {
 	STATE_CMD,
 	STATE_DEF_PROC,
+	STATE_IGN_PROC,
 	STATE_READ_CHAR,
 	STATE_READ_LINE
 };
@@ -243,25 +245,24 @@ enum en_com
 	COM_SETWINSZ,
 	COM_FILL,
 	COM_SAVE,
-	COM_PSAVE,
 	COM_LOAD,
+	COM_CD,
 
 	// 70
-	COM_CD,
 	COM_HELP,
 	COM_SHELP,
 	COM_HIST,
 	COM_CHIST,
+	COM_TRON,
 
 	// 75
-	COM_TRON,
 	COM_TRONS,
 	COM_TROFF,
 	COM_WATCH,
 	COM_UNWATCH,
+	COM_SEED,
 
 	// 80
-	COM_SEED,
 	COM_DEG,
 	COM_RAD,
 	COM_CT,
@@ -770,6 +771,21 @@ struct st_turtle
 };
 
 
+struct st_flags
+{
+	// Cmd line
+	unsigned do_graphics:1;
+	unsigned map_window:1;
+	unsigned indent_label_blocks:1;
+
+	// Runtime
+	unsigned window_mapped:1;
+	unsigned do_break:1;
+	unsigned executing:1;
+	unsigned suppress_prompt:1;
+	unsigned angle_in_degs:1;
+};
+
 // Arrays
 #ifdef MAINFILE
 const char *error_str[NUM_ERRORS] =
@@ -839,8 +855,8 @@ const char *error_str[NUM_ERRORS] =
 
 	// 45
 	"Invalid format",
-	"Invalid path or path not found",
-	"Path too long"
+	"Invalid path/filename or path not found",
+	"Path or filename too long"
 };
 
 
@@ -898,12 +914,10 @@ extern int op_prec[NUM_OPS];
 extern map<char,en_op> single_char_ops;
 #endif
 
-// Cmd line params
+// Cmd line params not including flags
 EXTERN int win_width;
 EXTERN int win_height;
 EXTERN int max_history_lines;
-EXTERN bool do_graphics;
-EXTERN bool map_window;
 EXTERN char *disp;
 
 // X
@@ -915,6 +929,7 @@ EXTERN int x_sock;
 EXTERN st_turtle *turtle; // Can't be created until X initialised
 
 // Runtime
+EXTERN st_flags flags;
 EXTERN st_io io;
 EXTERN struct termios saved_tio;
 EXTERN shared_ptr<st_user_proc> def_proc;
@@ -925,15 +940,10 @@ EXTERN st_user_proc_inst *curr_proc_inst;
 // more memory
 EXTERN unordered_map<string,shared_ptr<st_user_proc>> user_procs;
 EXTERN t_var_map global_vars;
+EXTERN string loadproc;  // Only used with LOAD command
 EXTERN int logo_state;
 EXTERN int nest_depth;
 EXTERN int tracing_mode;
-EXTERN bool window_mapped;
-EXTERN bool do_break;
-EXTERN bool executing;
-EXTERN bool suppress_prompt;
-EXTERN bool indent_label_blocks;
-EXTERN bool angle_in_degs;
 
 /**************************** FORWARD DECLARATIONS ***************************/
 
@@ -1032,6 +1042,10 @@ t_result procSplit(st_line *line, size_t tokpos);
 t_result procList(st_line *line, size_t tokpos);
 t_result procPath(st_line *line, size_t tokpos);
 
+// files.cc
+void loadProcFile(string filepath, string procname);
+void saveProcFile(string filepath, string &procname, bool psave);
+
 // vars.cc
 void     setSystemVars();
 void     setWindowSystemVars();
@@ -1042,11 +1056,12 @@ t_var_map::iterator getGlobalVar(string &name);
 // path.cc
 en_error matchPath(int type, char *pat, string &matchpath, bool toplevel = true);
 
-// misc.cc
-void   loadProcFile(string filename);
+// strings.cc
 bool   isNumber(string str);
 string numToString(double num);
 bool   wildMatch(const char *str, const char *pat, bool case_sensitive);
+
+// misc.cc
 void   printRunError(int errnum, const char *tokstr);
 void   printStopMesg(const char *stopword);
 void   printWatch(char type, string &name, st_value &val);
@@ -1158,25 +1173,24 @@ pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS] =
 	{ "SETWINSZ",comGraphics2Args },
 	{ "FILL",    comGraphics0Args },
 	{ "SAVE",    comSave },
-	{ "PSAVE",   comSave },
 	{ "LOAD",    comLoad },
+	{ "CD",      comCD   },
 
 	// 70
-	{ "CD",      comCD   },
 	{ "HELP",    comHelp },
 	{ "SHELP",   comHelp },
 	{ "HIST",    comHist },
 	{ "CHIST",   comChist },
+	{ "TRON",    comTrace },
 
 	// 75
-	{ "TRON",    comTrace },
 	{ "TRONS",   comTrace },
 	{ "TROFF",   comTrace },
 	{ "WATCH",   comWatch },
 	{ "UNWATCH", comUnWatch },
+	{ "SEED",    comSeed },
 
 	// 80
-	{ "SEED",    comSeed },
 	{ "DEG",     comAngleMode },
 	{ "RAD",     comAngleMode },
 	{ "CT",      comCT }

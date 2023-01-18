@@ -117,7 +117,7 @@ st_line::st_line(
 void st_line::parseAndExec(string &rdline)
 {
 	clear();
-	do_break = false;
+	flags.do_break = false;
 
 	if (tokenise(rdline))
 	{
@@ -132,6 +132,9 @@ void st_line::parseAndExec(string &rdline)
 			// Add this to the user proc being defined
 			assert(def_proc);
 			def_proc->addLine(this);
+			break;
+		case STATE_IGN_PROC:
+			execute();
 			break;
 		default:
 			assert(0);
@@ -572,7 +575,7 @@ size_t st_line::execute(size_t from)
 
 	for(pos=from;pos < tokens.size();)
 	{
-		if (do_break)
+		if (flags.do_break)
 		{
 			--nest_depth;	
 			throw t_interrupt({ INT_BREAK, "" });
@@ -586,7 +589,8 @@ size_t st_line::execute(size_t from)
 			case TYPE_UNDEF:
 				assert(0);
 			case TYPE_COM:
-				if (logo_state == STATE_DEF_PROC)
+				if (logo_state == STATE_DEF_PROC ||
+				    logo_state == STATE_IGN_PROC)
 				{
 					// Run command if TO to get error as
 					// can have embedded proc definitions
@@ -603,7 +607,8 @@ size_t st_line::execute(size_t from)
 				pos = commands[tok.subtype].second(this,pos);
 				break;
 			default:
-				if (logo_state == STATE_DEF_PROC) ++pos;
+				if (logo_state == STATE_DEF_PROC ||
+				    logo_state == STATE_IGN_PROC) ++pos;
 				else
 				{
 					if (tracing_mode) printTrace('C',"PR");
@@ -1353,11 +1358,11 @@ void st_line::dump(FILE *fp, int &indent, bool show_linenums)
 
 	// Indentation is a bit flakey as we can't match LABEL with GO since GO
 	// can take an expression which is why indentating is not the default
-	if (indent_label_blocks) indent += getIndentCount(COM_GO);
+	if (flags.indent_label_blocks) indent += getIndentCount(COM_GO);
 
 	string s = toString();
 
-	if (indent_label_blocks)
+	if (flags.indent_label_blocks)
 	{
 		for(int i=0;i < indent;++i) fputc('\t',fp);
 		indent += getIndentCount(COM_LABEL);

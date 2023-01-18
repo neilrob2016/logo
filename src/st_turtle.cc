@@ -452,7 +452,7 @@ shared_ptr<st_line> st_turtle::facts()
 	}
 	line->tokens.push_back(st_token(edge));
 	line->tokens.push_back(st_token(line_style_str));
-	line->tokens.push_back(st_token(window_mapped ? "WIN_VISIBLE" : "WIN_HIDDEN"));
+	line->tokens.push_back(st_token(flags.window_mapped ? "WIN_VISIBLE" : "WIN_HIDDEN"));
 
 	return line;
 }

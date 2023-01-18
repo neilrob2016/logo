@@ -126,7 +126,7 @@ en_error matchPath(int type, char *pat, string &matchpath, bool toplevel)
 
 		/* At end of pattern. Check final file for type. Treat links
 		   as files. */
-		if (!type || stat_type == type || 
+		if (stat_type == type || 
 		    (type == S_IFREG && stat_type == S_IFLNK))
 		{
 			matchpath = path;
