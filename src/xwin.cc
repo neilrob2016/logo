@@ -3,7 +3,7 @@
 void xWindowResized(XEvent &event);
 
 /*** Set up X except for turtle GC which is done in st_turtle::st_turtle() ***/
-void xInit()
+bool xInit()
 {
 	Atom delete_notify;
 	XGCValues gcvals;
@@ -18,12 +18,11 @@ void xInit()
 	u_char r,g,b;
 	char colstr[5];
 
-	puts("Connecting to X server...");
-	if (!(display = XOpenDisplay(disp)))
+	printf("Connecting to X server \"%s\"...\n",XDisplayName(xdisp));
+	if (!(display = XOpenDisplay(xdisp)))
 	{
-		printf("ERROR: Can't connect to X display '%s'\n",
-			XDisplayName(disp));
-		doExit(1);
+		puts("ERROR: Can't connect to X display.");
+		return false;
 	}
 	puts("Connected.");
 
@@ -116,6 +115,11 @@ void xInit()
 		XMapWindow(display,win);
 		flags.window_mapped = true;
 	}
+
+	// Create the turtle
+	turtle = new st_turtle;
+
+	return true;
 }
 
 

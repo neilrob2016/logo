@@ -66,3 +66,13 @@ January 2023
 - Fixed bugs in SAVE whereby a path with wildcards wasn't always expanded 
   correctly or failed to expand at all.
 - Module and code restructuring.
+
+
+February 2023
+=============
+1.5.0
+- Added TG command to start up turtle graphics if in console mode.
+- Added wildcard support to CD command.
+- Made loop indenting with PO* procedure listing the default and hence removed 
+  the -i command line option.
+- Minor code mods

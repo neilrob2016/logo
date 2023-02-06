@@ -141,3 +141,11 @@ en_error matchPath(int type, char *pat, string &matchpath, bool toplevel)
 	if (ptr) *ptr = '/';
 	return err;
 }
+
+
+
+
+bool pathHasWildCards(string &path)
+{
+	return path.find_first_of("*?~") != string::npos;
+}

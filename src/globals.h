@@ -42,7 +42,7 @@ using namespace std;
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
 #define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2023"
-#define LOGO_VERSION     "1.4.2"
+#define LOGO_VERSION     "1.5.0"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths
@@ -214,55 +214,56 @@ enum en_com
 	COM_PD,
 
 	// 45
+	COM_TG,
 	COM_FD,
 	COM_BK,
 	COM_LT,
 	COM_RT,
-	COM_SETPC,
 
 	// 50
+	COM_SETPC,
 	COM_SETBG,
 	COM_SETX,
 	COM_SETY,
 	COM_SETH,
-	COM_SETSZ,
 
 	// 55
+	COM_SETSZ,
 	COM_SETLW,
 	COM_SETLS,
 	COM_SETPOS,
 	COM_TOWARDS,
-	COM_DOT,
 
 	// 60
+	COM_DOT,
 	COM_WINDOW,
 	COM_FENCE,
 	COM_WRAP,
 	COM_SETIND,
-	COM_SETFILL,
 
 	// 65
+	COM_SETFILL,
 	COM_SETWINSZ,
 	COM_FILL,
 	COM_SAVE,
 	COM_LOAD,
-	COM_CD,
 
 	// 70
+	COM_CD,
 	COM_HELP,
 	COM_SHELP,
 	COM_HIST,
 	COM_CHIST,
-	COM_TRON,
 
 	// 75
+	COM_TRON,
 	COM_TRONS,
 	COM_TROFF,
 	COM_WATCH,
 	COM_UNWATCH,
-	COM_SEED,
 
 	// 80
+	COM_SEED,
 	COM_DEG,
 	COM_RAD,
 	COM_CT,
@@ -403,20 +404,21 @@ enum en_error
 	ERR_NO_GRAPHICS,
 
 	// 35
+	ERR_GRAPHICS_INIT_FAIL,
 	ERR_INVALID_COLOUR,
 	ERR_OPEN_FAIL,
 	ERR_READ_FAIL,
 	ERR_WRITE_FAIL,
-	ERR_STAT_FAIL,
 
 	// 40
+	ERR_STAT_FAIL,
 	ERR_CD_FAIL,
 	ERR_INVALID_HIST_CMD,
 	ERR_TURTLE_OUT_OF_BOUNDS,
 	ERR_CANT_FILL,
-	ERR_CANT_RESTART,
 
 	// 45
+	ERR_CANT_RESTART,
 	ERR_INVALID_FMT,
 	ERR_INVALID_PATH,
 	ERR_PATH_TOO_LONG,
@@ -449,6 +451,7 @@ enum en_win_edge
 	WIN_FENCED,
 	WIN_WRAPPED
 };
+
 
 enum en_tracing_mode
 {
@@ -840,20 +843,21 @@ const char *error_str[NUM_ERRORS] =
 	"Turtle graphics are not available",
 
 	// 35
+	"Turtle graphics initialisation failed",
 	"Invalid colour",
 	"Open failed",
 	"Read failed",
 	"Write failed",
-	"Stat failed",
 
 	// 40
+	"Stat failed",
 	"Change directory failed",
 	"Invalid history command number",
 	"Turtle out of bounds",
 	"Cannot FILL when turtle is wrapped",
-	"Cannot RESTART while doing initial load",
 
 	// 45
+	"Cannot RESTART while doing initial load",
 	"Invalid format",
 	"Invalid path/filename or path not found",
 	"Path or filename too long"
@@ -918,7 +922,7 @@ extern map<char,en_op> single_char_ops;
 EXTERN int win_width;
 EXTERN int win_height;
 EXTERN int max_history_lines;
-EXTERN char *disp;
+EXTERN char *xdisp;
 
 // X
 EXTERN Display *display;
@@ -948,7 +952,7 @@ EXTERN int tracing_mode;
 /**************************** FORWARD DECLARATIONS ***************************/
 
 // xwin.cc
-void xInit();
+bool xInit();
 void xParseEvent();
 void xSetWindowTitle();
 void xSetWindowBackground(int col);
@@ -1055,6 +1059,7 @@ t_var_map::iterator getGlobalVar(string &name);
 
 // path.cc
 en_error matchPath(int type, char *pat, string &matchpath, bool toplevel = true);
+bool pathHasWildCards(string &path);
 
 // strings.cc
 bool   isNumber(string str);
@@ -1142,55 +1147,56 @@ pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS] =
 	{ "PD",      comGraphics0Args },
 
 	// 45
+	{ "TG",      comGraphics0Args },
 	{ "FD",      comGraphics1Arg },
 	{ "BK",      comGraphics1Arg },
 	{ "LT",      comGraphics1Arg },
 	{ "RT",      comGraphics1Arg },
-	{ "SETPC",   comGraphics1Arg },
 
 	// 50
+	{ "SETPC",   comGraphics1Arg },
 	{ "SETBG",   comGraphics1Arg },
 	{ "SETX",    comGraphics1Arg },
 	{ "SETY",    comGraphics1Arg },
 	{ "SETH",    comGraphics1Arg },
-	{ "SETSZ",   comGraphics1Arg },
 
 	// 55
+	{ "SETSZ",   comGraphics1Arg },
 	{ "SETLW",   comGraphics1Arg },
 	{ "SETLS",   comGraphics1Arg },
 	{ "SETPOS",  comGraphics2Args },
 	{ "TOWARDS", comGraphics2Args },
-	{ "DOT",     comGraphics2Args },
 
 	// 60
+	{ "DOT",     comGraphics2Args },
 	{ "WINDOW",  comGraphics0Args },
 	{ "FENCE",   comGraphics0Args },
 	{ "WRAP",    comGraphics0Args },
 	{ "SETIND",  comSetInd },
-	{ "SETFILL", comGraphics0Args },
 
 	// 65
+	{ "SETFILL", comGraphics0Args },
 	{ "SETWINSZ",comGraphics2Args },
 	{ "FILL",    comGraphics0Args },
 	{ "SAVE",    comSave },
 	{ "LOAD",    comLoad },
-	{ "CD",      comCD   },
 
 	// 70
+	{ "CD",      comCD   },
 	{ "HELP",    comHelp },
 	{ "SHELP",   comHelp },
 	{ "HIST",    comHist },
 	{ "CHIST",   comChist },
-	{ "TRON",    comTrace },
 
 	// 75
+	{ "TRON",    comTrace },
 	{ "TRONS",   comTrace },
 	{ "TROFF",   comTrace },
 	{ "WATCH",   comWatch },
 	{ "UNWATCH", comUnWatch },
-	{ "SEED",    comSeed },
 
 	// 80
+	{ "SEED",    comSeed },
 	{ "DEG",     comAngleMode },
 	{ "RAD",     comAngleMode },
 	{ "CT",      comCT }

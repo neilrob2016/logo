@@ -700,10 +700,13 @@ size_t comOp(st_line *line, size_t tokpos)
      switch is worth the huge reduction in duplicated code ***/
 size_t comGraphics0Args(st_line *line, size_t tokpos)
 {
-	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	int com = line->tokens[tokpos].subtype;
+
+	if (com != COM_TG && !flags.do_graphics)
+		throw t_error({ ERR_NO_GRAPHICS, "" });
 
 	switch(line->tokens[tokpos].subtype)
-	{
+	{ 
 	case COM_HOME:
 		turtle->home();
 		break;
@@ -747,6 +750,17 @@ size_t comGraphics0Args(st_line *line, size_t tokpos)
 		break;
 	case COM_FILL:
 		turtle->fill();
+		break;
+	case COM_TG:
+		if (flags.do_graphics) break;
+
+		// Starts up X and creates the window from console mode.
+		if (!xInit())
+			throw t_error({ ERR_GRAPHICS_INIT_FAIL, "" });
+
+		// The X display and flags.map_window remains as set in 
+		// parseCmdLine(). Perhaps in the future these might be options
+		flags.do_graphics = true;
 		break;
 	default:
 		assert(0);
@@ -985,16 +999,17 @@ size_t comCD(st_line *line, size_t tokpos)
 	if (result.first.type != TYPE_STR || result.first.str == "")
 		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
 
-	string &dirname = result.first.str;
-
-	// If not a full path then prepend the current dir
-	if (dirname[0] != '/')
+	string &matchpath = result.first.str;
+	if (pathHasWildCards(matchpath))
 	{
-		char *dir = getcwd(NULL,0);
-		dirname = string(dir) + "/" + dirname;
-		free(dir);
+		char *dirname;
+		assert((dirname = strdup(matchpath.c_str())));
+		en_error err = matchPath(S_IFDIR,dirname,matchpath);
+		free(dirname);
+		if (err != OK) throw t_error({ err, "" });
 	}
-	if (chdir(dirname.c_str()) == -1)
+
+	if (chdir(matchpath.c_str()) == -1)
 		throw t_error({ ERR_CD_FAIL, "" });
 	return result.second;
 }

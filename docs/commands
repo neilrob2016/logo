@@ -694,6 +694,8 @@ TO test
 END
 ? 
 
+As of version 1.5.0 indentation is enabled by default.
+
 See: PO, POL, POPS, POPSL
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -791,6 +793,12 @@ entered line or a procedure. eg:
 
 ? dlabel stop pr "loop" go
 *** STOP ***
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TG
+
+If Logo is running in console mode this will start up X windows and the
+turtle graphics subsystem if possible. If not it will return an error.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TO <procedure name> [inline lines]

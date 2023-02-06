@@ -38,10 +38,11 @@ void parseCmdLine(int argc, char **argv)
 	bzero(&flags,sizeof(flags));
 	flags.do_graphics = true;
 	flags.map_window = true;
+	flags.indent_label_blocks = true;
 
 	win_width = WIN_WIDTH;
 	win_height = WIN_HEIGHT;
-	disp = NULL;
+	xdisp = NULL;
 	max_history_lines = MAX_HISTORY_LINES;
 
 	for(int i=1;i < argc;++i)
@@ -61,12 +62,8 @@ void parseCmdLine(int argc, char **argv)
 		}
 		if (opt.length() != 2) goto USAGE;
 
-		switch(opt[1])
+		if (opt[1] == 'u')
 		{
-		case 'i':
-			flags.indent_label_blocks = true;
-			continue;
-		case 'u':
 			flags.map_window = false;
 			continue;
 		}
@@ -75,7 +72,7 @@ void parseCmdLine(int argc, char **argv)
 		switch(opt[1])
 		{
 		case 'd':
-			disp = argv[i];
+			xdisp = argv[i];
 			break;
 		case 'w':
 			if ((win_width = atoi(argv[i])) < 1) goto USAGE;
@@ -106,7 +103,6 @@ void parseCmdLine(int argc, char **argv)
 	       "       -l <filename>   : Procedure file to load at startup.\n"
 	       "       -r <text>       : Code or procedure to run immediately.\n"
 	       "       -c <lines>      : Max number of console history lines. Default = %d\n"
-	       "       -i              : Indent procedure listings between LABEL and GO.\n"
 	       "       -u              : Start with the graphics window hidden (unmapped).\n"
 	       "       -con            : Console only, no turtle graphics.\n"
 	       "       -ver            : Display version then exit.\n"
@@ -209,8 +205,7 @@ void init(bool startup)
 		setSystemVars();
 		if (flags.do_graphics)
 		{
-			xInit();
-			turtle = new st_turtle;
+			if (!xInit()) doExit(1);
 		}
 		else turtle = NULL;
 

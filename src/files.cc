@@ -67,9 +67,6 @@ void loadProcFile(string filepath, string procname)
 
 
 
-#define HAS_WILDCARDS() \
-	(filepath.find("*") != string::npos || \
-	 filepath.find("?") != string::npos)
 
 void saveProcFile(string filepath, string &procname, bool psave)
 {
@@ -110,8 +107,8 @@ void saveProcFile(string filepath, string &procname, bool psave)
 		filepath = matchpath;
 	}
 
-	// Expand filename
-	if (HAS_WILDCARDS())
+	// Expand filename if it has wildcards
+	if (pathHasWildCards(filepath))
 	{
 		assert((str = strdup(filepath.c_str())));
 		err = matchPath(S_IFREG,str,matchpath);
@@ -119,11 +116,9 @@ void saveProcFile(string filepath, string &procname, bool psave)
 		if (err == OK) filepath = matchpath;
 
 		// Don't want to create filenames with '*' or '?' in them even 
-		// though fopen() is happy to do it.
-		if (HAS_WILDCARDS())
-		{
+		// though fopen() is happy to do it. ~ is ok though.
+		if (filepath.find_first_of("*?") != string::npos)
 			throw t_error({ ERR_INVALID_PATH, "" });
-		}
 	}
 
 	cout << "Saving to file \"" << filepath << "\"...\n";
