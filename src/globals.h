@@ -42,7 +42,7 @@ using namespace std;
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
 #define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2023"
-#define LOGO_VERSION     "1.5.0"
+#define LOGO_VERSION     "1.5.1"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths
@@ -777,7 +777,7 @@ struct st_turtle
 struct st_flags
 {
 	// Cmd line
-	unsigned do_graphics:1;
+	unsigned graphics_enabled:1;
 	unsigned map_window:1;
 	unsigned indent_label_blocks:1;
 
@@ -952,7 +952,8 @@ EXTERN int tracing_mode;
 /**************************** FORWARD DECLARATIONS ***************************/
 
 // xwin.cc
-bool xInit();
+bool xConnect();
+void xDisconnect();
 void xParseEvent();
 void xSetWindowTitle();
 void xSetWindowBackground(int col);

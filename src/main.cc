@@ -4,7 +4,7 @@
  A LOGO interpreter with Turtle graphics mainly written to keep my C++ skills
  up to date but also in the hope it will help Natasha learn programming.
 
- Copyright (C) Neil Robertson 2020
+ Copyright (C) Neil Robertson 2020-2023
  *****************************************************************************/
 
 #define MAINFILE
@@ -26,7 +26,15 @@ int main(int argc, char **argv)
 	parseCmdLine(argc,argv);
 	version(true);
 	io.kbRawMode();
-	mainloop();
+
+	// mainloop() will exit if there's a restart
+	for(bool startup=true;;startup=false)
+	{
+		init(startup);
+		ready();
+		prompt();
+		mainloop();
+	}
 	return 0;
 }
 
@@ -36,13 +44,14 @@ int main(int argc, char **argv)
 void parseCmdLine(int argc, char **argv)
 {
 	bzero(&flags,sizeof(flags));
-	flags.do_graphics = true;
+	flags.graphics_enabled = true;
 	flags.map_window = true;
 	flags.indent_label_blocks = true;
 
 	win_width = WIN_WIDTH;
 	win_height = WIN_HEIGHT;
 	xdisp = NULL;
+	display = NULL;
 	max_history_lines = MAX_HISTORY_LINES;
 
 	for(int i=1;i < argc;++i)
@@ -57,7 +66,7 @@ void parseCmdLine(int argc, char **argv)
 		}
 		if (opt == "-con")
 		{
-			flags.do_graphics = false;
+			flags.graphics_enabled = false;
 			continue;
 		}
 		if (opt.length() != 2) goto USAGE;
@@ -135,22 +144,15 @@ void version(bool short_ver)
 
 void mainloop()
 {
-	bool startup = true;
 	t_error err;
 	fd_set mask;
 	int rr;
-
-	RESTART:
-	init(startup);
-	startup = false;
-	ready();
-	prompt();
 
 	while(1)
 	{
 		FD_ZERO(&mask);
 		FD_SET(STDIN,&mask);
-		if (flags.do_graphics) FD_SET(x_sock,&mask);
+		if (flags.graphics_enabled) FD_SET(x_sock,&mask);
 
 		switch(select(FD_SETSIZE,&mask,0,0,0))
 		{
@@ -162,7 +164,7 @@ void mainloop()
 			// Timeout - should never happen
 			assert(0);
 		}
-		if (flags.do_graphics && FD_ISSET(x_sock,&mask)) xParseEvent();
+		if (flags.graphics_enabled && FD_ISSET(x_sock,&mask)) xParseEvent();
 
 		if (FD_ISSET(STDIN,&mask) && 
 		    io.readInput(STDIN,true,false,true,rr))
@@ -179,7 +181,7 @@ void mainloop()
 				if (inter.first == INT_RESTART)
 				{
 					printStopMesg("RESTART");
-					goto RESTART;
+					return;
 				}
 			}
 		}
@@ -203,9 +205,9 @@ void init(bool startup)
 	if (startup)
 	{
 		setSystemVars();
-		if (flags.do_graphics)
+		if (flags.graphics_enabled)
 		{
-			if (!xInit()) doExit(1);
+			if (!xConnect()) doExit(1);
 		}
 		else turtle = NULL;
 

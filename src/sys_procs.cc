@@ -419,7 +419,7 @@ t_result procRL(st_line *line, size_t tokpos)
      [<xpos> <ypos> <heading> <visible 1/0> <pen down 1/0> <pen colour> ***/
 t_result procTF(st_line *line, size_t tokpos)
 {
-	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.graphics_enabled) throw t_error({ ERR_NO_GRAPHICS, "" });
 	return { st_value(turtle->facts()), tokpos + 1 };
 }
 

@@ -76,3 +76,7 @@ February 2023
 - Made loop indenting with PO* procedure listing the default and hence removed 
   the -i command line option.
 - Minor code mods
+
+1.5.1
+- TG command can now toggle graphics off as well as on.
+- Minor code improvements.

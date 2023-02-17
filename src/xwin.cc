@@ -3,7 +3,7 @@
 void xWindowResized(XEvent &event);
 
 /*** Set up X except for turtle GC which is done in st_turtle::st_turtle() ***/
-bool xInit()
+bool xConnect()
 {
 	Atom delete_notify;
 	XGCValues gcvals;
@@ -24,7 +24,6 @@ bool xInit()
 		puts("ERROR: Can't connect to X display.");
 		return false;
 	}
-	puts("Connected.");
 
 	screen = DefaultScreen(display);
 	black = BlackPixel(display,screen);
@@ -118,8 +117,26 @@ bool xInit()
 
 	// Create the turtle
 	turtle = new st_turtle;
+	puts("Graphics enabled.");
 
 	return true;
+}
+
+
+
+
+void xDisconnect()
+{
+	if (flags.graphics_enabled)
+	{
+		delete turtle;
+		turtle = NULL;
+
+		assert(display);
+		XCloseDisplay(display);
+
+		puts("Graphics disabled.");
+	}
 }
 
 
@@ -225,7 +242,7 @@ void xWindowClear()
 
 void xWindowMap()
 {
-	if (flags.do_graphics)
+	if (flags.graphics_enabled)
 	{
 		XMapWindow(display,win);
 		XFlush(display);
@@ -239,7 +256,7 @@ void xWindowMap()
 
 void xWindowUnmap()
 {
-	if (flags.do_graphics)
+	if (flags.graphics_enabled)
 	{
 		XUnmapWindow(display,win);
 		XFlush(display);

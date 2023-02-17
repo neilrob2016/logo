@@ -325,7 +325,7 @@ size_t comPosf(st_line *line, size_t tokpos)
 	puts("------------");
 	printf("Indentation is %s.\n",flags.indent_label_blocks ? "on" : "off");
 	printf("Fill is %s.\n",
-		flags.do_graphics && turtle->store_fill ? "on" : "off");
+		flags.graphics_enabled && turtle->store_fill ? "on" : "off");
 	
 	return tokpos + 1;
 }
@@ -702,7 +702,7 @@ size_t comGraphics0Args(st_line *line, size_t tokpos)
 {
 	int com = line->tokens[tokpos].subtype;
 
-	if (com != COM_TG && !flags.do_graphics)
+	if (com != COM_TG && !flags.graphics_enabled)
 		throw t_error({ ERR_NO_GRAPHICS, "" });
 
 	switch(line->tokens[tokpos].subtype)
@@ -752,15 +752,15 @@ size_t comGraphics0Args(st_line *line, size_t tokpos)
 		turtle->fill();
 		break;
 	case COM_TG:
-		if (flags.do_graphics) break;
-
-		// Starts up X and creates the window from console mode.
-		if (!xInit())
+		// Toggles between graphics enabled and disabled
+		if (flags.graphics_enabled)
+			xDisconnect();
+		else if (!xConnect())
 			throw t_error({ ERR_GRAPHICS_INIT_FAIL, "" });
 
 		// The X display and flags.map_window remains as set in 
 		// parseCmdLine(). Perhaps in the future these might be options
-		flags.do_graphics = true;
+		flags.graphics_enabled = !flags.graphics_enabled;
 		break;
 	default:
 		assert(0);
@@ -774,7 +774,7 @@ size_t comGraphics0Args(st_line *line, size_t tokpos)
 /*** Graphics commands with 1 argument ***/
 size_t comGraphics1Arg(st_line *line, size_t tokpos)
 {
-	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.graphics_enabled) throw t_error({ ERR_NO_GRAPHICS, "" });
 
 	int com = line->tokens[tokpos].subtype;
 	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
@@ -838,7 +838,7 @@ size_t comGraphics1Arg(st_line *line, size_t tokpos)
      silly to me so here it takes 2 normal arguments ***/
 size_t comGraphics2Args(st_line *line, size_t tokpos)
 {
-	if (!flags.do_graphics) throw t_error({ ERR_NO_GRAPHICS, "" });
+	if (!flags.graphics_enabled) throw t_error({ ERR_NO_GRAPHICS, "" });
 	if (line->tokens.size() - tokpos < 2)
 		throw t_error({ ERR_MISSING_ARG, "" });
 
