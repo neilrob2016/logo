@@ -1,6 +1,6 @@
-CC=c++ -g -std=c++11 -O
+CC=c++ -g -std=c++17 -O
 # No-ops assert()
-#CC=c++ -g -std=c++11 -O -DNDEBUG
+#CC=c++ -g -std=c++17 -O -DNDEBUG
 
 LIBPATH=-L/usr/X11R6/lib -L/usr/X11R6/lib64
 LIBS=-lX11 -lXext -lm

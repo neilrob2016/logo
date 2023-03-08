@@ -96,8 +96,8 @@ void st_turtle::setXY(double _x, double _y)
 		st_turtle_line tline(
 			pen_colour,line_width,line_style,prev_x,prev_y,x,y);
 		tline.draw();
-		draw_lines.push_back(tline);
-		if (store_fill) get<2>(fill_polys.back()).push_back(tline);
+		draw_lines.emplace_back(tline);
+		if (store_fill) get<2>(fill_polys.back()).emplace_back(tline);
 
 		XFlush(display);
 	}
@@ -264,7 +264,7 @@ void st_turtle::setFill()
 
 	// Add empty vector if not there or have a used one
 	if (!fill_polys.size() || get<2>(fill_polys.back()).size())
-		fill_polys.push_back(make_tuple(false,pen_colour,t_shape()));
+		fill_polys.emplace_back(make_tuple(false,pen_colour,t_shape()));
 }
 
 
@@ -309,7 +309,7 @@ void st_turtle::setTowards(double _x, double _y)
 void st_turtle::drawDot(short dx, short dy)
 {
 	xDrawPoint(pen_colour,dx,dy);
-	dots.push_back(make_pair(pen_colour,XPoint{dx,dy}));
+	dots.emplace_back(make_pair(pen_colour,XPoint{dx,dy}));
 	XFlush(display);
 }
 
@@ -353,11 +353,11 @@ void st_turtle::drawAll()
 	for(auto &tline: draw_lines) tline.draw();
 
 	// Draw any filled polygons
-	for(auto &tup: fill_polys)
-		if (get<0>(tup)) fillPolygon(get<1>(tup),get<2>(tup));
+	for(auto &[fill,col,shape]: fill_polys)
+		if (fill) fillPolygon(col,shape);
 
 	// Draw dots
-	for(auto &pr: dots) xDrawPoint(pr.first,pr.second.x,pr.second.y);
+	for(auto &[col,coord]: dots) xDrawPoint(col,coord.x,coord.y);
 
 	// Draw the turtle
 	draw();
@@ -425,15 +425,15 @@ void st_turtle::fillPolygon(int col, t_shape &polygon)
 shared_ptr<st_line> st_turtle::facts()
 {
 	shared_ptr<st_line> line = make_shared<st_line>(true);
-	line->tokens.push_back(st_token(x));
-	line->tokens.push_back(st_token(y));
-	line->tokens.push_back(st_token(angle));
-	line->tokens.push_back(st_token(size));
-	line->tokens.push_back(st_token(line_width));
-	line->tokens.push_back(st_token(pen_colour));
-	line->tokens.push_back(st_token(pen_down ? "DOWN" : "UP"));
-	line->tokens.push_back(st_token(visible ? "VISIBLE" : "HIDDEN"));
-	line->tokens.push_back(st_token(store_fill ? "FILL" : "NO_FILL"));
+	line->tokens.emplace_back(st_token(x));
+	line->tokens.emplace_back(st_token(y));
+	line->tokens.emplace_back(st_token(angle));
+	line->tokens.emplace_back(st_token(size));
+	line->tokens.emplace_back(st_token(line_width));
+	line->tokens.emplace_back(st_token(pen_colour));
+	line->tokens.emplace_back(st_token(pen_down ? "DOWN" : "UP"));
+	line->tokens.emplace_back(st_token(visible ? "VISIBLE" : "HIDDEN"));
+	line->tokens.emplace_back(st_token(store_fill ? "FILL" : "NO_FILL"));
 
 	string edge;
 	switch(win_edge)
@@ -450,9 +450,9 @@ shared_ptr<st_line> st_turtle::facts()
 	default:
 		assert(0);
 	}
-	line->tokens.push_back(st_token(edge));
-	line->tokens.push_back(st_token(line_style_str));
-	line->tokens.push_back(st_token(flags.window_mapped ? "WIN_VISIBLE" : "WIN_HIDDEN"));
+	line->tokens.emplace_back(st_token(edge));
+	line->tokens.emplace_back(st_token(line_style_str));
+	line->tokens.emplace_back(st_token(flags.window_mapped ? "WIN_VISIBLE" : "WIN_HIDDEN"));
 
 	return line;
 }

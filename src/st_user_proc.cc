@@ -20,7 +20,7 @@ st_user_proc::st_user_proc(string &_name, st_line *line, size_t &tokpos):
 		if (find(params.begin(),params.end(),cparam) != params.end())
 			throw t_error({ ERR_DUP_DECLARATION, param });
 
-		params.push_back(cparam);
+		params.emplace_back(cparam);
 	}
 }
 
@@ -43,7 +43,7 @@ void st_user_proc::addLine(st_line *line)
 		line->setLineNum(next_linenum);
 		line->parent_proc = def_proc.get();
 		next_linenum += 10;
-		lines.push_back(shared_ptr<st_line>(new st_line(line)));
+		lines.emplace_back(shared_ptr<st_line>(new st_line(line)));
 		break;
 	case STATE_CMD:
 		// If END wasn't the first command on the line then add
@@ -51,7 +51,7 @@ void st_user_proc::addLine(st_line *line)
 		if (line->tokens.size() > 1)
 		{
 			assert(tokpos > 1);
-			lines.push_back(shared_ptr<st_line>(new st_line(
+			lines.emplace_back(shared_ptr<st_line>(new st_line(
 				def_proc.get(),next_linenum,line,0,tokpos-2)));
 			next_linenum += 10;
 		}
@@ -98,7 +98,7 @@ void st_user_proc::addReplaceDeleteLine(int linenum, st_line *line, size_t from)
 	if (newline)
 	{
 		next_linenum = linenum + 10;
-		lines.push_back(shared_ptr<st_line>(newline));
+		lines.emplace_back(shared_ptr<st_line>(newline));
 	}
 }
 

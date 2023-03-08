@@ -46,7 +46,6 @@ void parseCmdLine(int argc, char **argv)
 	bzero(&flags,sizeof(flags));
 	flags.graphics_enabled = true;
 	flags.map_window = true;
-	flags.indent_label_blocks = true;
 
 	win_width = WIN_WIDTH;
 	win_height = WIN_HEIGHT;
@@ -71,14 +70,19 @@ void parseCmdLine(int argc, char **argv)
 		}
 		if (opt.length() != 2) goto USAGE;
 
-		if (opt[1] == 'u')
+		char c = opt[1];
+		switch(c)
 		{
+		case 'i':
+			flags.indent_label_blocks = true;
+			continue;
+		case 'u':
 			flags.map_window = false;
 			continue;
 		}
 		if (++i == argc) goto USAGE;
 
-		switch(opt[1])
+		switch(c)
 		{
 		case 'd':
 			xdisp = argv[i];
@@ -112,6 +116,7 @@ void parseCmdLine(int argc, char **argv)
 	       "       -l <filename>   : Procedure file to load at startup.\n"
 	       "       -r <text>       : Code or procedure to run immediately.\n"
 	       "       -c <lines>      : Max number of console history lines. Default = %d\n"
+	       "       -i              : Set procedure listing indentation on.\n"
 	       "       -u              : Start with the graphics window hidden (unmapped).\n"
 	       "       -con            : Console only, no turtle graphics.\n"
 	       "       -ver            : Display version then exit.\n"

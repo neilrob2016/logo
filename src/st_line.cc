@@ -79,7 +79,7 @@ st_line::st_line(st_line *parent, size_t from)
 				if (!--cnt) break;
 			}
 		}
-		tokens.push_back(tok);
+		tokens.emplace_back(tok);
 	}
 	assert(!cnt);
 	parent_proc = parent->parent_proc;
@@ -104,7 +104,7 @@ st_line::st_line(
 	parent_proc = proc;
 
 	for(size_t pos=from;pos <= to;++pos)
-		tokens.push_back(parent->tokens[pos]);
+		tokens.emplace_back(parent->tokens[pos]);
 	createSubLists();
 	matchBrackets();
 	setLabels();
@@ -309,7 +309,7 @@ bool st_line::tokenise(string &rdline)
 void st_line::addToken(int type, string &strval)
 {
 	// Can't use make_shared because using non default constructor
-	tokens.push_back(st_token(type,strval));
+	tokens.emplace_back(st_token(type,strval));
 }
 
 
@@ -344,7 +344,7 @@ void st_line::addOpToken(char c, int opcode)
 		}
 	}
 	// Add single char op
-	tokens.push_back(st_token(c,opcode));
+	tokens.emplace_back(st_token(c,opcode));
 }
 
 
@@ -389,11 +389,11 @@ void st_line::setUndefinedTokens()
 		}
 
 		// See if its a multi character operator
-		for(auto &pr: word_ops)
+		for(auto &[opname,op]: word_ops)
 		{
-			if (!strcasecmp(pr.first,tokstr))
+			if (!strcasecmp(opname,tokstr))
 			{
-				tok.changeType(TYPE_OP,pr.second);
+				tok.changeType(TYPE_OP,op);
 				found = true;
 				break;
 			}
@@ -1058,7 +1058,7 @@ void st_line::operator+=(st_line &rhs)
 	size_t add = tokens.size();
 	for(st_token &tok: rhs.tokens)
 	{
-		tokens.push_back(tok);
+		tokens.emplace_back(tok);
 
 		// Adjust bracket match positions
 		if (tokens.back().type == TYPE_OP && 
@@ -1093,7 +1093,7 @@ void st_line::operator*=(int cnt)
 			if (tok.type == TYPE_OP && tok.match_pos)
 				tok.match_pos += size * i;
 
-			tokens.push_back(tok);
+			tokens.emplace_back(tok);
 		}
 	}
 }
@@ -1130,16 +1130,16 @@ shared_ptr<st_line> st_line::evalList()
 			case TYPE_UNDEF:
 				assert(0);
 			case TYPE_COM:
-				line->tokens.push_back(st_token(tok));
+				line->tokens.emplace_back(st_token(tok));
 				++pos;
 				break;
 			case TYPE_LIST:
-				line->tokens.push_back(st_token(tok.listline->evalList()));
+				line->tokens.emplace_back(st_token(tok.listline->evalList()));
 				++pos;
 				break;
 			default:
 				result = evalExpression(pos);
-				line->tokens.push_back(st_token(result.first));
+				line->tokens.emplace_back(st_token(result.first));
 				pos = result.second;
 			}
 		}
@@ -1159,7 +1159,8 @@ shared_ptr<st_line> st_line::evalList()
 void st_line::listShuffle()
 {
 	assert(type == LINE_LIST);
-	random_shuffle(tokens.begin(),tokens.end());
+	mt19937_64 ran(time(0));
+	shuffle(tokens.begin(),tokens.end(),ran);
 }
 
 //////////////////////////////////// GETTERS //////////////////////////////////
@@ -1203,7 +1204,7 @@ shared_ptr<st_line> st_line::setListFirst(st_value &val)
 	assert(type == LINE_LIST);
 
 	shared_ptr<st_line> line = make_shared<st_line>(true);
-	line->tokens.push_back(st_token(val));
+	line->tokens.emplace_back(st_token(val));
 	line->tokens.insert(line->tokens.end(),tokens.begin(),tokens.end());
 
 	return line;
@@ -1219,7 +1220,7 @@ shared_ptr<st_line> st_line::setListLast(st_value &val)
 
 	shared_ptr<st_line> line = make_shared<st_line>(true);
 	line->tokens.insert(line->tokens.end(),tokens.begin(),tokens.end());
-	line->tokens.push_back(st_token(val));
+	line->tokens.emplace_back(st_token(val));
 
 	return line;
 }
@@ -1358,17 +1359,14 @@ void st_line::dump(FILE *fp, int &indent, bool show_linenums)
 
 	// Indentation is a bit flakey as we can't match LABEL with GO since GO
 	// can take an expression which is why indentating is not the default
-	if (flags.indent_label_blocks) indent += getIndentCount(COM_GO);
-
-	string s = toString();
-
 	if (flags.indent_label_blocks)
 	{
+		indent += getIndentCount(COM_GO);
 		for(int i=0;i < indent;++i) fputc('\t',fp);
 		indent += getIndentCount(COM_LABEL);
 		indent += getIndentCount(COM_DLABEL);
 	}
-	if (fputs(s.c_str(),fp) == -1)
+	if (fputs(toString().c_str(),fp) == -1)
 		throw t_error({ ERR_WRITE_FAIL, "" });	
 }
 
@@ -1384,7 +1382,10 @@ int st_line::getIndentCount(int com)
 	{
 		if (tok.type == TYPE_COM)
 		{
-			if (tok.subtype == com) indent += add;
+			// Don't indent if we have more than one command on
+			// the same line
+			if (tok.subtype != com) return 0;
+			indent += add;
 		}
 		else if (tok.type == TYPE_LIST)
 			indent += tok.listline->getIndentCount(com);

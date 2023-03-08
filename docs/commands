@@ -694,7 +694,7 @@ TO test
 END
 ? 
 
-As of version 1.5.0 indentation is enabled by default.
+The -i command line option will enable indentation at startup.
 
 See: PO, POL, POPS, POPSL
 

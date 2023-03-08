@@ -2,14 +2,13 @@ TO circles :cnt
 	CS HT
 	MAKE "i" 0
 	DLABEL
-	PU
-	SETPOS RANDOM $win_width RANDOM $win_height
-	PD
-	SETPC RANDOM ($num_colours - 1)
-	INC :i
-	IF :i = :cnt [OP]
-	SETFILL REPEAT 120 [FD 5 RT 3] FILL
+		PU
+		SETPOS RANDOM $win_width RANDOM $win_height
+		PD
+		SETPC RANDOM ($num_colours - 1)
+		INC :i
+		IF :i = :cnt [ST OP]
+		SETFILL REPEAT 120 [FD 5 RT 3] FILL
 	GO
-	ST
 END
 

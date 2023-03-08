@@ -26,6 +26,7 @@
 #include <stack>
 #include <map>
 #include <set>
+#include <random>
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
@@ -42,7 +43,7 @@ using namespace std;
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
 #define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2023"
-#define LOGO_VERSION     "1.5.1"
+#define LOGO_VERSION     "1.5.2"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths

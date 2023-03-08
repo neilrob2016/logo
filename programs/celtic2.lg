@@ -11,6 +11,6 @@ TO celtic2 :cnt
 		SETPC :col
 		REPEAT 8 [SETPC :col MAKELOC "col" (:col + 1) % $num_colours REPEAT 2 [FD 75 RT 90 FD 75] RT 45]
 		INC :i
-		IF :i = :cnt [STOP]
+		IF :i = :cnt [OP]
 	GO
 END

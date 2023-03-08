@@ -129,11 +129,11 @@ void saveProcFile(string filepath, string &procname, bool psave)
 
 	try
 	{
-		for(auto &pr: user_procs)
+		for(auto &[name,proc]: user_procs)
 		{
-			if (procname == "" || procname == pr.first)
+			if (procname == "" || procname == name)
 			{
-				pr.second->dump(fp,true,false);
+				proc->dump(fp,true,false);
 				++cnt;
 				if (psave) break;
 			}

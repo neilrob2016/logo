@@ -281,9 +281,9 @@ size_t comPops(st_line *line, size_t tokpos)
 	{
 		puts("User procedures");
 		puts("---------------");
-		for(auto &pr: user_procs)
+		for(auto &[name,proc]: user_procs)
 		{
-			pr.second->dump(stdout,full_dump,show_linenums);
+			proc->dump(stdout,full_dump,show_linenums);
 			putchar('\n');
 		}
 	}
@@ -302,14 +302,10 @@ size_t comPons(st_line *line, size_t tokpos)
 	// Print out system vars first then user defined ones
 	for(int i=0;i < 2;++i)
 	{
-		for(auto &pr: global_vars)
+		for(auto &[name,value]: global_vars)
 		{
-			if ((!i && pr.first[0] == '$') ||
-			    (i && pr.first[0] != '$'))
-			{
-				cout << pr.first 
-				     << " is " << pr.second.dump(true) << endl;
-			}
+			if ((!i && name[0] == '$') || (i && name[0] != '$'))
+				cout << name << " is " << value.dump(true) << endl;
 		}
 	}
 	return tokpos + 1;

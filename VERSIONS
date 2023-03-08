@@ -80,3 +80,12 @@ February 2023
 1.5.1
 - TG command can now toggle graphics off as well as on.
 - Minor code improvements.
+
+
+March 2023
+==========
+1.5.2
+- Reverted indenting by default as it has some unfixable (without a huge 
+  amount of work) issues which can lead to confusing indentation. Also added
+  back -i command line option.
+- Updated code to C++ 2017.
