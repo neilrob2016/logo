@@ -1,0 +1,7 @@
+TO spiral2
+	HOME CLEAR PU
+	MAKE "len" 10
+	MAKE "diam" 2
+	REPEAT 150 [SETPC RANDOM ($num_colours - 1) FD :len CIRC :diam :diam 1 BK :len RT 20 MAKE "len" :len + 3 INC :diam]
+END
+

@@ -21,7 +21,7 @@ void st_turtle::reset()
 	visible = true;
 	pen_down = true;
 	pen_colour = COL_WHITE;
-	store_fill = false;
+	fill_shape = false;
 	size = TURTLE_SIZE;
 	win_edge = WIN_UNBOUNDED;
 	setBackground(WIN_DEFAULT_COL);
@@ -40,6 +40,7 @@ void st_turtle::clear()
 	draw_lines.clear();
 	fill_polys.clear();
 	dots.clear();
+	circles.clear();
 	xWindowClear();
 	draw();
 }
@@ -97,7 +98,7 @@ void st_turtle::setXY(double _x, double _y)
 			pen_colour,line_width,line_style,prev_x,prev_y,x,y);
 		tline.draw();
 		draw_lines.emplace_back(tline);
-		if (store_fill) get<2>(fill_polys.back()).emplace_back(tline);
+		if (fill_shape) get<2>(fill_polys.back()).emplace_back(tline);
 
 		XFlush(display);
 	}
@@ -256,7 +257,7 @@ void st_turtle::setFill()
 	// X windows fill algo won't work if polygon is in seperate parts
 	if (win_edge == WIN_WRAPPED) throw t_error({ ERR_CANT_FILL, "" });
 
-	store_fill = true;
+	fill_shape = true;
 
 	// Get rid of unfillable polygon - need at least a triangle
 	if (fill_polys.size() && get<2>(fill_polys.back()).size() < 3)
@@ -316,6 +317,18 @@ void st_turtle::drawDot(short dx, short dy)
 
 
 
+void st_turtle::drawCircle(double x_diam, double y_diam, bool fill)
+{
+	st_turtle_circle circ(
+		pen_colour,line_style,line_width,x_diam,y_diam,x,y,fill);
+	circles.emplace_back(circ);
+	circ.draw();
+	XFlush(display);
+}
+
+
+
+
 /*** Draw the turtle itself which is an arrow shape ***/
 void st_turtle::draw()
 {
@@ -359,6 +372,9 @@ void st_turtle::drawAll()
 	// Draw dots
 	for(auto &[col,coord]: dots) xDrawPoint(col,coord.x,coord.y);
 
+	// Draw circles
+	for(auto &circ: circles) circ.draw();
+
 	// Draw the turtle
 	draw();
 
@@ -383,7 +399,7 @@ void st_turtle::fill()
 	get<0>(tup) = true;
 
 	// Don't store any more polygons until SETFILL called again
-	store_fill = false;
+	fill_shape = false;
 
 	// Need at least a triangle
 	if (polygon.size() < 3)
@@ -433,7 +449,7 @@ shared_ptr<st_line> st_turtle::facts()
 	line->tokens.emplace_back(st_token(pen_colour));
 	line->tokens.emplace_back(st_token(pen_down ? "DOWN" : "UP"));
 	line->tokens.emplace_back(st_token(visible ? "VISIBLE" : "HIDDEN"));
-	line->tokens.emplace_back(st_token(store_fill ? "FILL" : "NO_FILL"));
+	line->tokens.emplace_back(st_token(fill_shape ? "FILL" : "NO_FILL"));
 
 	string edge;
 	switch(win_edge)

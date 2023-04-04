@@ -16,6 +16,7 @@ OBJS=\
 	st_user_proc_inst.o \
 	st_turtle.o \
 	st_turtle_line.o \
+	st_turtle_circle.o \
 	commands.o \
 	sys_procs.o \
 	strings.o \
@@ -59,6 +60,9 @@ st_turtle.o: st_turtle.cc $(DEPS)
 
 st_turtle_line.o: st_turtle_line.cc $(DEPS)
 	$(COMP) st_turtle_line.cc
+
+st_turtle_circle.o: st_turtle_circle.cc $(DEPS)
+	$(COMP) st_turtle_circle.cc
 
 commands.o: commands.cc $(DEPS)
 	$(COMP) commands.cc

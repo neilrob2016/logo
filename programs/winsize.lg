@@ -7,6 +7,6 @@ TO winsize
 	MAKE "h" :h + 10
 	IF :h > 400 [STOP]
 	WAIT 0.2
-	GO ""
+	GO 
 END
 

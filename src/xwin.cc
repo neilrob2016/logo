@@ -235,6 +235,7 @@ void xSetLineStyle(int col, int style)
 void xWindowClear()
 {
 	XClearWindow(display,win);
+	XFlush(display);
 }
 
 
@@ -314,4 +315,16 @@ void xDrawPolygon(int col, XPoint *pnts, int cnt, bool fill)
 		XFillPolygon(display,win,gc[col],pnts,cnt,Nonconvex,CoordModeOrigin);
 	else
 		XDrawLines(display,win,gc[col],pnts,cnt,CoordModeOrigin);
+}
+
+
+
+
+void xDrawCircle(int col, int x_diam, int y_diam, int x, int y, bool fill)
+{
+	static const int circle = 23040;
+	if (fill)
+		XFillArc(display,win,gc[col],x,y,x_diam,y_diam,0,circle);
+	else
+		XDrawArc(display,win,gc[col],x,y,x_diam,y_diam,0,circle);
 }

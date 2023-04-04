@@ -38,6 +38,15 @@ Clears the current console command history.
 See: HIST
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+CIRC <x diam> <y diam> <fill 0/1>
+
+Draw/fill a circle at the current turtle position, colour and line style with
+the given diameter. If fill is non zero then the circle will be filled in else
+it will be an outline.
+
+See: DOT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CLEAR
 
 Clears the graphics window but unlike CS it does not reset the turtle.
@@ -93,6 +102,8 @@ This draws a dot in the current turtle pen colour at the given window position
 but it does not move the turtle itself.
 
 Eg: DOT 100 200
+
+See: CIRC
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EAT <expression>

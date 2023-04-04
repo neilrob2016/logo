@@ -89,3 +89,10 @@ March 2023
   amount of work) issues which can lead to confusing indentation. Also added
   back -i command line option.
 - Updated code to C++ 2017.
+
+
+April 2023
+==========
+1.6.0
+- Added circle drawing CIRC command.
+- Fixed bug in CLEAR command whereby it didn't work if the turtle was hidden.

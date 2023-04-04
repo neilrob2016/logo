@@ -321,7 +321,7 @@ size_t comPosf(st_line *line, size_t tokpos)
 	puts("------------");
 	printf("Indentation is %s.\n",flags.indent_label_blocks ? "on" : "off");
 	printf("Fill is %s.\n",
-		flags.graphics_enabled && turtle->store_fill ? "on" : "off");
+		flags.graphics_enabled && turtle->fill_shape ? "on" : "off");
 	
 	return tokpos + 1;
 }
@@ -830,55 +830,58 @@ size_t comGraphics1Arg(st_line *line, size_t tokpos)
 
 
 
-/*** In Dr Logo this commands take a 2 argument list but that seems a bit 
-     silly to me so here it takes 2 normal arguments ***/
-size_t comGraphics2Args(st_line *line, size_t tokpos)
+/*** In Dr Logo this would be a 2 argument list which is fair enough as
+     it means only 1 argument follows, but I prefer standalone args.
+     CIRC takes 3 arguments but can't be bothered to have a seperate func ***/
+size_t comGraphics23Args(st_line *line, size_t tokpos)
 {
 	if (!flags.graphics_enabled) throw t_error({ ERR_NO_GRAPHICS, "" });
 	if (line->tokens.size() - tokpos < 2)
 		throw t_error({ ERR_MISSING_ARG, "" });
 
 	int com = line->tokens[tokpos].subtype;
+	int cnt = (com == COM_CIRC ? 3 : 2);
+	st_value val[cnt];
+	size_t tokpos2 = tokpos + 1;
 
-	// Get X location
-	t_result xres = line->evalExpression(++tokpos);
-	size_t ypos = xres.second;
-	if (line->isExprEnd(ypos))
-		throw t_error({ ERR_MISSING_ARG, "" });
-	st_value &xval = xres.first;
-	if (xval.type != TYPE_NUM)
-		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
-
-	// Get Y location
-	t_result yres = line->evalExpression(ypos);
-	st_value &yval = yres.first;
-	if (yval.type != TYPE_NUM)
-		throw t_error({ ERR_INVALID_ARG, line->tokens[ypos].toString() });
+	// Get arguments, all numeric
+	for(int i=0;i < cnt;++i)
+	{
+		t_result res = line->evalExpression(tokpos2);
+		tokpos2 = res.second;
+		if (i < cnt - 1 && line->isExprEnd(tokpos2))
+			throw t_error({ ERR_MISSING_ARG, "" });
+		val[i] = res.first;
+		if (val[i].type != TYPE_NUM)
+			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos2].toString() });
+	}
 
 	switch(com)
 	{
 	case COM_SETPOS:
-		turtle->setXY(xval.num,yval.num);
+		turtle->setXY(val[0].num,val[1].num);
 		break;
 	case COM_SETWINSZ:
-		if (xval.num < 1)
+		if (val[0].num < 1)
 			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
-		if (yval.num < 1)
-			throw t_error({ ERR_INVALID_ARG, line->tokens[ypos].toString() });
-		xResizeWindow((int)xval.num,(int)yval.num);
+		if (val[1].num < 1)
+			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos2].toString() });
+		xResizeWindow((int)val[0].num,(int)val[1].num);
 		break;
 	case COM_TOWARDS:
-		turtle->setTowards(xval.num,yval.num);
+		turtle->setTowards(val[0].num,val[1].num);
 		break;
 	case COM_DOT:
-		turtle->drawDot((short)xval.num,(short)yval.num);
+		turtle->drawDot((short)val[0].num,(short)val[1].num);
+		break;
+	case COM_CIRC:
+		turtle->drawCircle(val[0].num,val[1].num,(bool)val[2].num);
 		break;
 	default:
 		assert(0);
 	}
-	return yres.second;;
+	return tokpos2;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 

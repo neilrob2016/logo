@@ -1,0 +1,13 @@
+TO ringstar 
+	HOME PU CLEAR
+	SETLS "dash"
+	MAKE "len" 50
+	MAKE "fl" 0
+	MAKE "cnt" 0
+	DLABEL
+	REPEAT 10 [SETPC RANDOM ($num_colours - 1) FD :len CIRC 30 30 :fl BK :len RT 36 MAKE "fl" (not :fl)]
+	MAKE "len" :len + 30
+	MAKE "cnt" :cnt + 1
+	IF :cnt < 10 [GO]
+END
+

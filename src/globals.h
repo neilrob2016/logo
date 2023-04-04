@@ -43,7 +43,7 @@ using namespace std;
 // System
 #define LOGO_INTERPRETER "NRJ-LOGO"
 #define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2023"
-#define LOGO_VERSION     "1.5.2"
+#define LOGO_VERSION     "1.6.0"
 #define LOGO_FILE_EXT    ".lg"
 
 // Maths
@@ -237,33 +237,34 @@ enum en_com
 
 	// 60
 	COM_DOT,
+	COM_CIRC,
 	COM_WINDOW,
 	COM_FENCE,
 	COM_WRAP,
-	COM_SETIND,
 
 	// 65
+	COM_SETIND,
 	COM_SETFILL,
 	COM_SETWINSZ,
 	COM_FILL,
 	COM_SAVE,
-	COM_LOAD,
 
 	// 70
+	COM_LOAD,
 	COM_CD,
 	COM_HELP,
 	COM_SHELP,
 	COM_HIST,
-	COM_CHIST,
 
 	// 75
+	COM_CHIST,
 	COM_TRON,
 	COM_TRONS,
 	COM_TROFF,
 	COM_WATCH,
-	COM_UNWATCH,
 
 	// 80
+	COM_UNWATCH,
 	COM_SEED,
 	COM_DEG,
 	COM_RAD,
@@ -714,6 +715,24 @@ struct st_turtle_line
 };
 
 
+struct st_turtle_circle
+{
+	int colour;
+	int style;
+	int line_width;
+	int x_diam;
+	int y_diam;
+	int x;
+	int y;
+	bool fill;
+
+	st_turtle_circle(
+		int col, int sty, int lw,
+		double xdm, double ydm, double _x, double _y, bool fl);
+	void draw();
+};
+
+
 // Class for turtle 
 struct st_turtle
 {
@@ -729,7 +748,7 @@ struct st_turtle
 	int win_edge;
 	bool pen_down;
 	bool visible;
-	bool store_fill;
+	bool fill_shape;
 	string line_style_str;
 	t_shape draw_lines;
 
@@ -739,6 +758,8 @@ struct st_turtle
 
 	// int = col, XPoint = x,y
 	vector<pair<int,XPoint>> dots;
+
+	vector<st_turtle_circle> circles;
 
 	st_turtle();
 
@@ -766,6 +787,7 @@ struct st_turtle
 	void setTowards(double _x, double _y);
 
 	void drawDot(short dx, short dy);
+	void drawCircle(double x_diam, double y_diam, bool fill);
 	void draw();
 	void drawAll();
 	void fill();
@@ -968,6 +990,7 @@ void xDrawPoint(int col, int x, int y);
 void xDrawLine(int col, int xf, int yf, int xt, int yt);
 void xDrawLine(int col, double xf, double yf, double xt, double yt);
 void xDrawPolygon(int col, XPoint *pnts, int cnt, bool fill);
+void xDrawCircle(int col, int x_diam, int y_diam, int x, int y, bool fill);
 
 // commands.cc
 size_t comRem(st_line *line, size_t tokpos);
@@ -998,7 +1021,7 @@ size_t comGo(st_line *line, size_t tokpos);
 size_t comOp(st_line *line, size_t tokpos);
 size_t comGraphics0Args(st_line *line, size_t tokpos);
 size_t comGraphics1Arg(st_line *line, size_t tokpos);
-size_t comGraphics2Args(st_line *line, size_t tokpos);
+size_t comGraphics23Args(st_line *line, size_t tokpos);
 size_t comSetInd(st_line *line, size_t tokpos);
 size_t comSave(st_line *line, size_t tokpos);
 size_t comLoad(st_line *line, size_t tokpos);
@@ -1166,38 +1189,39 @@ pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS] =
 	{ "SETSZ",   comGraphics1Arg },
 	{ "SETLW",   comGraphics1Arg },
 	{ "SETLS",   comGraphics1Arg },
-	{ "SETPOS",  comGraphics2Args },
-	{ "TOWARDS", comGraphics2Args },
+	{ "SETPOS",  comGraphics23Args },
+	{ "TOWARDS", comGraphics23Args },
 
 	// 60
-	{ "DOT",     comGraphics2Args },
+	{ "DOT",     comGraphics23Args },
+	{ "CIRC",    comGraphics23Args },
 	{ "WINDOW",  comGraphics0Args },
 	{ "FENCE",   comGraphics0Args },
 	{ "WRAP",    comGraphics0Args },
-	{ "SETIND",  comSetInd },
 
 	// 65
+	{ "SETIND",  comSetInd },
 	{ "SETFILL", comGraphics0Args },
-	{ "SETWINSZ",comGraphics2Args },
+	{ "SETWINSZ",comGraphics23Args },
 	{ "FILL",    comGraphics0Args },
 	{ "SAVE",    comSave },
-	{ "LOAD",    comLoad },
 
 	// 70
+	{ "LOAD",    comLoad },
 	{ "CD",      comCD   },
 	{ "HELP",    comHelp },
 	{ "SHELP",   comHelp },
 	{ "HIST",    comHist },
-	{ "CHIST",   comChist },
 
 	// 75
+	{ "CHIST",   comChist },
 	{ "TRON",    comTrace },
 	{ "TRONS",   comTrace },
 	{ "TROFF",   comTrace },
 	{ "WATCH",   comWatch },
-	{ "UNWATCH", comUnWatch },
 
 	// 80
+	{ "UNWATCH", comUnWatch },
 	{ "SEED",    comSeed },
 	{ "DEG",     comAngleMode },
 	{ "RAD",     comAngleMode },
