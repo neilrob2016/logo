@@ -96,3 +96,14 @@ April 2023
 1.6.0
 - Added circle drawing CIRC command.
 - Fixed bug in CLEAR command whereby it didn't work if the turtle was hidden.
+
+
+November 2023
+=============
+1.7.0
+- Added picture save and load functionality.
+- Added SETPIC, ERPIC, ERPICS commands
+- Added LOADPIC, SAVEPIC, GETPICS and DIRPICS system procedures.
+- Added $pic_file_extension and $winpic system variables.
+- Fixed bug that caused the words TO and END to be treated as commands inside
+  a REM statement during a procedure definition or load.

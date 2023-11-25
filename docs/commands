@@ -181,6 +181,37 @@ READY
 See: ER, ERV, ERP, RESTART, PO, POL, POTS, POALL, DEG, RAD
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ERPIC <picture>
+
+Delete the given picture. eg:
+
+? getpics
+["pic_1" "pic_2"]
+? erpic "pic_1"
+? getpics
+["pic_2"]
+
+Note that if the picture is the current window picture the window picture
+remains unchanged.
+
+See: ERPICS, SETPIC
+See sysprocs: LOADPIC, SAVEPIC, GETPICS, DIRPICS
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ERPICS
+
+Deletes all the pictures and resets the picture counter. eg:
+
+? getpics
+["pic_1" "pic_2"]
+? erpics
+? getpics
+[]
+
+See: ERPIC, SETPIC
+See sysprocs: LOADPIC, SAVEPIC, GETPICS, DIRPICS
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ERV
 
 Deletes all global variables.
@@ -736,6 +767,19 @@ Sets the turtle pen colour.
 Eg: CS SETPC 10 FD 100
 
 See: SETBG, SETLW
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SETPIC <picture>
+
+Sets the current background picture for the window. It has to be selected from
+the current loaded pictures. eg:
+
+? getpics
+["pic_1" "pic_2"]
+? setpic item 2 getpics
+
+See: ERPIC, ERPICS
+See sysprocs: LOADPIC, SAVEPIC, GETPICS, DIRPICS
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SETPOS <X position> <Y position>

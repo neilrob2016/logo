@@ -6,6 +6,7 @@ Fixed at boot:
 	$num_colours
 	$degs_per_rad
 	$file_extension
+	$pic_file_extension
 	$interpreter
 	$e
 	$pi
@@ -21,3 +22,4 @@ Can changa during run:
 	$win_width
 	$win_colour
 	$angle_mode
+	$winpic

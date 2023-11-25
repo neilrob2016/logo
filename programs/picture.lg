@@ -1,0 +1,15 @@
+TO picture 
+	"Creating picture..."
+	ERPICS CS SETPC 20
+	REPEAT 20 [FD 100 RT 100]
+	HT
+	"Saving picture..."
+	SAVEPIC "mypic"
+	CS
+	"Reloading picture..."
+	MAKE "pic" ITEM 1 LOADPIC "mypic"
+	"Displaying picture..."
+	SETPIC :pic
+	"Picture displayed is " $winpic
+END
+

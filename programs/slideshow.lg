@@ -1,0 +1,22 @@
+TO slideshow 
+	; Demonstrates picture functionality
+	"Creating pictures..."
+	CS HT SETPC 1 REPEAT 36 [FD 100 RT 100]
+	; SAVEPIC without a filename argument means store in memory only, don't
+	; SAVE TO a file
+	SAVEPIC
+	CS HT SETPC 20 REPEAT 36 [FD 200 RT 100]
+	SAVEPIC
+	CS HT SETPC 40 REPEAT 36 [FD 300 RT 110]
+	SAVEPIC
+	CS
+	; Now loop through the pictures
+	"Looping pictures..."
+	MAKE "pics" GETPICS
+	DLABEL
+	MAKE "i" 1
+	HT
+	REPEAT 3 ["Picture " :i SETPIC ITEM :i :pics INC :i WAIT 0.200000]
+	GO
+END
+

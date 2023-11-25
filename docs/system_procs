@@ -116,6 +116,18 @@ See: GETDIR, PATH
 See commands: LOAD, SAVE, CD
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+DIRPICS
+DIRPICS <directory path>
+
+As per DIR except it returns all the LOGO picture files (.lp extension). eg:
+
+? dirpics
+["mypic1" "flowers"]
+
+See: LOADPIC, SAVEPIC, GETPIC
+See commands: SETPIC, ERPIC, ERPICS
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EVAL [<list>]
 
 This takes a list and returns a new list with the evaluated values of any
@@ -206,6 +218,22 @@ directory. Eg:
 
 See: DIR
 See commands: LOAD, SAVE, CD
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GETPICS
+
+This returns a list of the pictures currently loaded in memory. eg:
+
+? savepic
+["pic_6" 0 800 600]
+? getpics
+["pic_3" "pic_4" "pic_5" "pic_6"]
+? erpic "pic_4"
+? getpics      
+["pic_3" "pic_5" "pic_6"]
+
+See: LOADPIC, SAVEPIC, DIRPICS
+See commands: SETPIC, ERPIC, ERPICS
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 GETSECS
@@ -300,6 +328,26 @@ Returns 1 if the result of the expression is a list, else 0. eg:
 1
 
 See: NUMP, STRP
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LOADPIC <path>
+
+This loads the picture data from the given file into memory and assigns it a
+new picture id. Note that it does not write it to the window, you need to use
+SETPIC for that. It returns the following list:
+
+[<picture id> <window width> <window height> <bytes loaded>]
+
+eg:
+? getpics
+[]
+? loadpic "picfile"
+["pic_1" 800 600 490]
+? getpics
+["pic_1"]
+
+See: SAVEPIC, GETPICS, DIRPICS
+See commands: SETPIC, ERPIC, ERPICS
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LOG/LOG2/LOG10 <number>
@@ -488,6 +536,33 @@ the return value is the same as the string. Eg:
 --hello--
 
 See: LPAD, FMT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SAVEPIC
+SAVEPIC <path>
+
+This saves whatever is in the window as a picture (actually an XImage) and
+if a filename is given it writes it to a file. The file will almost always use
+one of two forms of Run Length Encoding (but it will save raw data if this uses
+less bytes) but this is hidden from the user.
+
+It returns the following list:
+
+[<picture id> <window width> <window height> <bytes saved to disk>]
+
+eg:
+
+? savepic
+["pic_4" 800 600 0]
+? savepic "picfile"
+["pic_5" 800 600 490]
+
+Note the first command merely saves it in memory so the byte count is zero.
+Each time the comment is used the picture count used to create a new picture
+id is increased by one.
+
+See: LOADPIC, GETPICS, DIRPICS
+See commands: SETPIC, ERPIC, ERPICS
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SGN <number>
