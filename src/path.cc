@@ -18,6 +18,92 @@ static inline char *getUserDir(char *name, string &matchpath)
 
 
 
+/*** Attempt to match the file and if not found add the TLE and try again ***/
+en_error matchLoadPath(string &filepath, string &matchpath, const char *tle)
+{
+	en_error err;
+	char *str;
+
+	matchpath = "";
+
+	for(int i=0;i < 2;++i)
+	{
+		assert((str = strdup(filepath.c_str())));
+		err = matchPath(S_IFREG,str,matchpath);
+		free(str);
+		if (err != OK)
+		{
+			if (filepath.size() < 3 ||
+			    filepath.substr(filepath.size()-3,3) != tle)
+			{
+				filepath += tle;
+			}
+			else return err;
+		}
+		else break;
+	}
+	return OK;
+}
+
+
+
+/*** The difference between this and the load path is that the load path file
+     at the end of the path must exist. That is not the case for saving a
+     new file ***/
+en_error matchSavePath(string &filepath, string &matchpath, const char *tle)
+{
+	en_error err;
+	char *str;
+	size_t slashpos;
+	int cnt;
+
+	matchpath = "";
+	cnt = count(filepath.begin(),filepath.end(),'/');
+
+	// Expand directory name
+	if ((filepath[0] == '/' && cnt > 1) ||
+	    (filepath[0] != '/' && cnt))
+	{
+		// Get rid of section after final slash.
+		// eg: /a/b/c/myfile -> /a/b/c
+		slashpos = filepath.rfind('/');
+		string dirname = filepath.substr(0,slashpos);
+
+		assert((str = strdup(dirname.c_str())));
+		err = matchPath(S_IFDIR,str,matchpath);
+		free(str);
+		if (err != OK) return err;
+
+		matchpath += "/";
+		matchpath += filepath.substr(slashpos+1);
+		filepath = matchpath;
+	}
+	else matchpath = filepath;
+
+	bool add_tle = true;
+
+	// Expand filename if it has wildcards
+	if (pathHasWildCards(filepath))
+	{
+		assert((str = strdup(filepath.c_str())));
+		err = matchPath(S_IFREG,str,matchpath);
+		free(str);
+
+		if (err != OK) return ERR_INVALID_PATH;
+
+		// We've matched a pre-existing file so don't add TLE
+		add_tle = false;
+	}
+	if (add_tle &&
+	    (matchpath.size() < 3 || 
+	     matchpath.substr(matchpath.size()-3,3) != tle))
+	{
+		matchpath += tle;
+	}
+	return OK;
+}
+
+
 
 /*** Goes through a particular directory and looks for an object type that
      matches type and pattern. If type is zero then match any type. Simpler

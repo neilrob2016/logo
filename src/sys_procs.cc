@@ -633,6 +633,7 @@ t_result procDir(st_line *line, size_t tokpos)
 	string dirname;
 	string matchpath;
 	size_t endpos;
+	int sproc = line->tokens[tokpos].subtype;
 
         // Get dirname. If there isn't one default to "."
 	if (line->isExprEnd(++tokpos))
@@ -651,7 +652,7 @@ t_result procDir(st_line *line, size_t tokpos)
 	en_error err;
 	char *str;
 	assert((str = strdup(dirname.c_str())));
-	err = matchPath(S_IFDIR,(char *)dirname.c_str(),matchpath);
+	err = matchPath(S_IFDIR,str,matchpath);
 	free(str);
 	if (err != OK) throw t_error({ err, line->tokens[tokpos].toString() });
 
@@ -666,16 +667,18 @@ t_result procDir(st_line *line, size_t tokpos)
 	string entry;
 	string path;
 
+	// If DIR then look for program files, if DIRPICS then picture files
+	const char *tle = (sproc == SPROC_DIR ? LOGO_PROC_FILE_EXT : LOGO_PIC_FILE_EXT);
+
 	while((de = readdir(dir)))
 	{
 		path = dirname + "/" + de->d_name;
 		if (stat(path.c_str(),&fs) == -1 || 
 		    (fs.st_mode & S_IFMT) == S_IFREG)
 		{
-			// Only include LOGO files
 			file = de->d_name;
 			if (file.size() > 2 &&
-			    file.substr(file.size() - 3,3) == LOGO_FILE_EXT)
+			    file.substr(file.size() - 3,3) == tle)
 			{
 				entry = file.substr(0,file.size() - 3);
 				listline->addToken(TYPE_STR,entry);
@@ -933,4 +936,70 @@ t_result procPath(st_line *line, size_t tokpos)
 
 	if (err == OK) return { st_value(matchpath), path.second };
 	return { st_value(""), path.second };
+}
+
+
+
+t_result procLoadSavePic(st_line *line, size_t tokpos)
+{
+	if (!flags.graphics_enabled) throw t_error({ ERR_NO_GRAPHICS, "" });
+
+	string filename;
+	int sproc = line->tokens[tokpos].subtype;
+
+	if (line->isExprEnd(++tokpos))
+	{
+		if (sproc == SPROC_LOADPIC)
+			throw t_error({ ERR_MISSING_ARG, "" });
+		// SAVEPIC doesn't need a filename. If not there it means 
+		// only create image in memory, don't save to file.
+	}
+	else
+	{
+		// Get path to expand
+		t_result path = line->evalExpression(tokpos);
+		if (path.first.type != TYPE_STR)
+			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].strval });
+		filename = path.first.str;
+		tokpos = path.second;
+	}
+	shared_ptr<st_line> listline = make_shared<st_line>(true);
+	st_picture *pic;
+	XImage *img;
+	uint32_t bytes;
+	int width;
+	int height;
+
+	// Path matching and adding TLE done in the load/save functions.
+	if (sproc == SPROC_LOADPIC)
+	{
+		// Can't have empty filename (obviously)
+		if (filename == "")
+			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].strval });
+		tie(img,width,height,bytes) = loadPicFile(filename);
+		pic = createPicture(img,width,height);
+	}
+	else
+	{
+		tie(img,width,height,bytes) = savePicFile(filename);
+		pic = createPicture(img,width,height);
+	}
+
+	listline->addToken(pic->id);
+	listline->addToken(width);
+	listline->addToken(height);
+	listline->addToken(bytes);
+
+	return { st_value(listline), tokpos };
+}
+
+
+
+
+t_result procGetPics(st_line *line, size_t tokpos)
+{
+	shared_ptr<st_line> listline = make_shared<st_line>(true);
+
+	for(auto &[text,pic]: pictures) listline->addToken(text);
+	return { st_value(listline), tokpos+1 };
 }

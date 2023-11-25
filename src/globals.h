@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
@@ -41,10 +42,11 @@ using namespace std;
 #endif
 
 // System
-#define LOGO_INTERPRETER "NRJ-LOGO"
-#define LOGO_COPYRIGHT   "Copyright (C) Neil Robertson 2020-2023"
-#define LOGO_VERSION     "1.6.0"
-#define LOGO_FILE_EXT    ".lg"
+#define LOGO_INTERPRETER   "NRJ-LOGO"
+#define LOGO_COPYRIGHT     "Copyright (C) Neil Robertson 2020-2023"
+#define LOGO_VERSION       "1.7.0"
+#define LOGO_PROC_FILE_EXT ".lg"
+#define LOGO_PIC_FILE_EXT  ".lp"
 
 // Maths
 #define DEGS_PER_RADIAN 57.29578
@@ -152,7 +154,7 @@ enum en_line
 enum en_com
 {
 	// 0
-	COM_SEMI,
+	COM_REM1,
 	COM_REM2,
 	COM_ED,
 	COM_TO,
@@ -270,6 +272,11 @@ enum en_com
 	COM_RAD,
 	COM_CT,
 
+	// 85
+	COM_ERPIC,
+	COM_ERPICS,
+	COM_SETPIC,
+
 	NUM_COMS
 };
 
@@ -337,18 +344,24 @@ enum en_sproc
 	SPROC_MATCH,
 	SPROC_MATCHC,
 	SPROC_DIR,
-	SPROC_GETDIR,
+	SPROC_DIRPICS,
 
 	// 45
+	SPROC_GETDIR,
 	SPROC_GETSECS,
 	SPROC_GETDATE,
 	SPROC_FMT,
 	SPROC_LPAD,
-	SPROC_RPAD,
 
 	// 50
+	SPROC_RPAD,
 	SPROC_LIST,
 	SPROC_PATH,
+	SPROC_LOADPIC,
+	SPROC_SAVEPIC,
+
+	// 55
+	SPROC_GETPICS,
 
 	NUM_SPROCS
 };
@@ -424,6 +437,11 @@ enum en_error
 	ERR_INVALID_FMT,
 	ERR_INVALID_PATH,
 	ERR_PATH_TOO_LONG,
+	ERR_NOT_PICTURE_FILE,
+
+	// 50
+	ERR_INVALID_RLE,
+	ERR_INVALID_PICTURE,
 
 	NUM_ERRORS
 };
@@ -576,6 +594,7 @@ struct st_token
 	st_token(int _type, string &_word);
 	st_token(char op, int opcode);
 	st_token(double num);
+	st_token(char *_strval);
 	st_token(shared_ptr<st_line> _listline);
 	st_token(st_value val);
 
@@ -610,6 +629,9 @@ struct st_line
 	void parseAndExec(string &rdline);
 	bool tokenise(string &rdline);
 	void addToken(int type, string &strval);
+	void addToken(double num);
+	void addToken(const string &str);
+	void addToken(char *str);
 	void addOpToken(char c, int opcode);
 	void setUndefinedTokens();
 	void negateTokens();
@@ -812,6 +834,21 @@ struct st_flags
 	unsigned angle_in_degs:1;
 };
 
+
+struct st_picture
+{
+	string id;
+	XImage *img;
+	int width;
+	int height;
+
+	st_picture(): img(NULL) { }
+	st_picture(char *_id, XImage *_img, int _width, int _height);
+	~st_picture();
+	void draw();
+};
+
+
 // Arrays
 #ifdef MAINFILE
 const char *error_str[NUM_ERRORS] =
@@ -883,7 +920,12 @@ const char *error_str[NUM_ERRORS] =
 	"Cannot RESTART while doing initial load",
 	"Invalid format",
 	"Invalid path/filename or path not found",
-	"Path or filename too long"
+	"Path or filename too long",
+	"Not a LOGO picture file",
+
+	// 50
+	"Invalid run length type",
+	"Invalid picture"
 };
 
 
@@ -951,9 +993,13 @@ EXTERN char *xdisp;
 EXTERN Display *display;
 EXTERN Window win;
 EXTERN GC gc[NUM_COLOURS+1];
+EXTERN int img_counter;
+EXTERN int screen;
 EXTERN int win_colour;
 EXTERN int x_sock;
 EXTERN st_turtle *turtle; // Can't be created until X initialised
+EXTERN shared_ptr<st_picture> winpic;
+EXTERN map<string,shared_ptr<st_picture>> pictures;
 
 // Runtime
 EXTERN st_flags flags;
@@ -985,7 +1031,8 @@ void xSetLineStyle(int col, int style);
 void xWindowClear();
 void xWindowMap();
 void xWindowUnmap();
-void xResizeWindow(int width, int height);
+void xWindowResize(int width, int height, bool force_set=false);
+XImage *xImageCreate(int width, int height);
 void xDrawPoint(int col, int x, int y);
 void xDrawLine(int col, int xf, int yf, int xt, int yt);
 void xDrawLine(int col, double xf, double yf, double xt, double yt);
@@ -1035,6 +1082,7 @@ size_t comUnWatch(st_line *line, size_t tokpos);
 size_t comSeed(st_line *line, size_t tokpos);
 size_t comAngleMode(st_line *line, size_t tokpos);
 size_t comCT(st_line *line, size_t tokpos);
+size_t comPicture(st_line *line, size_t tokpos);
 
 // procedures.cc
 t_result procEval(st_line *line, size_t tokpos);
@@ -1070,10 +1118,18 @@ t_result procPad(st_line *line, size_t tokpos);
 t_result procSplit(st_line *line, size_t tokpos);
 t_result procList(st_line *line, size_t tokpos);
 t_result procPath(st_line *line, size_t tokpos);
+t_result procLoadSavePic(st_line *line, size_t tokpos);
+t_result procGetPics(st_line *line, size_t tokpos);
 
-// files.cc
+// proc_files.cc
 void loadProcFile(string filepath, string procname);
 void saveProcFile(string filepath, string &procname, bool psave);
+
+// pictures.cc
+tuple<XImage *,int,int,uint32_t> loadPicFile(string filepath);
+tuple<XImage *,int,int,uint32_t> savePicFile(string filepath);
+st_picture *createPicture(XImage *img, int width, int height);
+void setPicture(st_picture *pic);
 
 // vars.cc
 void     setSystemVars();
@@ -1083,6 +1139,8 @@ st_value getVarValue(string &name);
 t_var_map::iterator getGlobalVar(string &name);
 
 // path.cc
+en_error matchLoadPath(string &filepath, string &matchpath, const char *tle);
+en_error matchSavePath(string &filepath, string &matchpath, const char *tle);
 en_error matchPath(int type, char *pat, string &matchpath, bool toplevel = true);
 bool pathHasWildCards(string &path);
 
@@ -1225,7 +1283,12 @@ pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS] =
 	{ "SEED",    comSeed },
 	{ "DEG",     comAngleMode },
 	{ "RAD",     comAngleMode },
-	{ "CT",      comCT }
+	{ "CT",      comCT },
+
+	// 85
+	{ "ERPIC",   comPicture },
+	{ "ERPICS",  comErall },
+	{ "SETPIC",  comPicture }
 };
 
 // Built in system procedures that take value(s) and return a result. Array 
@@ -1293,18 +1356,24 @@ pair<const char *,function<t_result(st_line *, size_t)>> sysprocs[NUM_SPROCS] =
 	{ "MATCH",  procMatch },
 	{ "MATCHC", procMatch },
 	{ "DIR",    procDir },
-	{ "GETDIR", procGetDir },
+	{ "DIRPICS",procDir },
 
 	// 45
+	{ "GETDIR", procGetDir },
 	{ "GETSECS",procGetSecs },
 	{ "GETDATE",procGetDate },
 	{ "FMT",    procFmt },
 	{ "LPAD",   procPad },
-	{ "RPAD",   procPad },
 
 	// 50
+	{ "RPAD",   procPad },
 	{ "LIST",   procList },
-	{ "PATH",   procPath }
+	{ "PATH",   procPath },
+	{ "LOADPIC",procLoadSavePic },
+	{ "SAVEPIC",procLoadSavePic },
+
+	// 55
+	{ "GETPICS",procGetPics }
 };
 #else
 extern pair<const char *,function<int(st_line *, size_t)>> commands[NUM_COMS];

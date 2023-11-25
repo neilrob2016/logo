@@ -201,6 +201,17 @@ size_t comErall(st_line *line, size_t tokpos)
 			puts("User procedures deleted.");
 		}
 	}
+	if (com == COM_ERPICS || com == COM_ERALL)
+	{
+		if (pictures.size())
+		{
+			pictures.clear();
+			winpic.reset();
+			setGlobalVarValue("$winpic","");
+			img_counter = 1;
+			cout << "Pictures deleted.\n";
+		}
+	}
 	if (com == COM_ERALL)
 	{
 		if (watch_vars.size())
@@ -208,8 +219,8 @@ size_t comErall(st_line *line, size_t tokpos)
 			watch_vars.clear();
 			puts("Watch variables list cleared.");
 		}
+		ready();
 	}
-	ready();
 	return tokpos + 1;
 }
 
@@ -866,7 +877,7 @@ size_t comGraphics23Args(st_line *line, size_t tokpos)
 			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
 		if (val[1].num < 1)
 			throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos2].toString() });
-		xResizeWindow((int)val[0].num,(int)val[1].num);
+		xWindowResize((int)val[0].num,(int)val[1].num);
 		break;
 	case COM_TOWARDS:
 		turtle->setTowards(val[0].num,val[1].num);
@@ -882,6 +893,40 @@ size_t comGraphics23Args(st_line *line, size_t tokpos)
 	}
 	return tokpos2;
 }
+
+
+
+
+size_t comPicture(st_line *line, size_t tokpos)
+{
+	if (!flags.graphics_enabled) throw t_error({ ERR_NO_GRAPHICS, "" });
+	int com = line->tokens[tokpos].subtype;
+
+	if (line->isExprEnd(++tokpos)) throw t_error({ ERR_MISSING_ARG, "" });
+
+	t_result result = line->evalExpression(tokpos);
+	if (result.first.type != TYPE_STR)
+		throw t_error({ ERR_INVALID_ARG, line->tokens[tokpos].toString() });
+
+	string &name = result.first.str;
+
+	auto it = pictures.find(name);
+	if (it == pictures.end()) throw t_error({ ERR_INVALID_PICTURE, name });
+
+	if (com == COM_ERPIC)
+	{
+		if (winpic == it->second)
+		{
+			winpic.reset();
+			setGlobalVarValue("$winpic","");
+		}
+		pictures.erase(it);
+	}
+	else setPicture(it->second.get()); // SETPIC
+
+	return result.second;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 

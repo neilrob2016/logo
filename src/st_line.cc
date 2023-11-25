@@ -315,6 +315,30 @@ void st_line::addToken(int type, string &strval)
 
 
 
+void st_line::addToken(double num)
+{
+	tokens.emplace_back(st_token(num));
+}
+
+
+
+
+void st_line::addToken(const string &str)
+{
+	tokens.emplace_back(st_token((char *)str.c_str()));
+}
+
+
+
+
+void st_line::addToken(char *str)
+{
+	tokens.emplace_back(st_token(str));
+}
+
+
+
+
 void st_line::addOpToken(char c, int opcode)
 {
 	if (tokens.size())
@@ -572,6 +596,7 @@ size_t st_line::execute(size_t from)
 		throw t_error({ ERR_MAX_NEST_DEPTH, "" });
 
 	size_t pos;
+	bool in_rem = false;
 
 	for(pos=from;pos < tokens.size();)
 	{
@@ -582,6 +607,9 @@ size_t st_line::execute(size_t from)
 		}
 
 		st_token &tok = tokens[pos];
+		int com = tok.subtype;
+		if (com == COM_REM1 || com == COM_REM2) in_rem = true;
+
 		try
 		{
 			switch(tok.type)
@@ -593,18 +621,15 @@ size_t st_line::execute(size_t from)
 				    logo_state == STATE_IGN_PROC)
 				{
 					// Run command if TO to get error as
-					// can have embedded proc definitions
-					if (tok.subtype == COM_END || 
-					    tok.subtype == COM_TO)
-					{
-						return commands[tok.subtype].second(this,pos);
-					}
+					// can't have nested proc definitions
+					if (!in_rem && (com == COM_END || com == COM_TO))
+						return commands[com].second(this,pos);
 					++pos;
 					continue;
 				}
 				if (tracing_mode)
-					printTrace('C',commands[tok.subtype].first);
-				pos = commands[tok.subtype].second(this,pos);
+					printTrace('C',commands[com].first);
+				pos = commands[com].second(this,pos);
 				break;
 			default:
 				if (logo_state == STATE_DEF_PROC ||
@@ -688,9 +713,12 @@ t_result st_line::evalExpression(size_t tokpos)
 			{
 			case SPROC_TF:
 			case SPROC_DIR:
+			case SPROC_DIRPICS:
 			case SPROC_GETDIR:
 			case SPROC_GETSECS:
-				// These procs don't take an argument
+			case SPROC_GETPICS:
+			case SPROC_SAVEPIC:
+				// These procs don't always need an argument
 				break;
 			default:
 				if (pos+1 == tokens.size())

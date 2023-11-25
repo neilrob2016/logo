@@ -11,7 +11,9 @@ void setSystemVars()
 	setGlobalVarValue("$degs_per_rad",DEGS_PER_RADIAN);
 	setGlobalVarValue("$build_date",BUILD_DATE);
 	setGlobalVarValue("$num_colours",NUM_COLOURS);
-	setGlobalVarValue("$file_extension",LOGO_FILE_EXT);
+	setGlobalVarValue("$file_extension",LOGO_PROC_FILE_EXT);
+	setGlobalVarValue("$pic_file_extension",LOGO_PIC_FILE_EXT);
+	setGlobalVarValue("$winpic","");
 	setGlobalVarValue("$angle_mode",flags.angle_in_degs ? "DEG" : "RAD");
 
 	// LOGO isn't a system programming language so just provide the

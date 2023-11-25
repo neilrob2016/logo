@@ -10,13 +10,12 @@ bool xConnect()
 	XColor colour;
 	XColor unused;
 	Colormap cmap;
-	int screen;
 	int white;
 	int black;
 	int stage;
 	int col;
 	u_char r,g,b;
-	char colstr[5];
+	char colstr[10];
 
 	printf("Connecting to X server \"%s\"...\n",XDisplayName(xdisp));
 	if (!(display = XOpenDisplay(xdisp)))
@@ -232,9 +231,11 @@ void xSetLineStyle(int col, int style)
 
 
 
+/*** Clears the window and writes any background image ***/
 void xWindowClear()
 {
 	XClearWindow(display,win);
+	if (winpic) winpic->draw(); 
 	XFlush(display);
 }
 
@@ -270,11 +271,33 @@ void xWindowUnmap()
 
 
 /*** This will cause X to fire off a ConfigureNotify which we'll get and
-     xWindowResized() will get called so no need to set anything here ***/
-void xResizeWindow(int width, int height)
+     xWindowResized() will get called but this might not happen soon enough,
+     eg when loading a picture, hence force set option ***/
+void xWindowResize(int width, int height, bool force_set)
 {
 	XResizeWindow(display,win,width,height);
-	XFlush(display);
+	if (force_set)
+	{
+		win_width = width;
+		win_height = height;
+		xSetWindowTitle();
+		setWindowSystemVars();
+	}
+}
+
+
+
+
+XImage *xImageCreate(int width, int height)
+{
+	char *data = (char *)malloc(width * height * sizeof(uint32_t));
+	assert(data);
+
+	return XCreateImage(
+		display,
+		DefaultVisual(display,screen),
+		DefaultDepth(display,screen),
+		XYPixmap,0,data,width,height,32,0);
 }
 
 

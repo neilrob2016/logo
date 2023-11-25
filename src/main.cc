@@ -11,7 +11,8 @@
 #include "globals.h"
 #include "build_date.h"
 
-static string loadfile;
+static string procfile;
+static string picfile;
 static string runtext;
 
 static void parseCmdLine(int argc, char **argv);
@@ -97,7 +98,10 @@ void parseCmdLine(int argc, char **argv)
 			if ((max_history_lines = atoi(argv[i])) < 1) goto USAGE;
 			break;
 		case 'l':
-			loadfile = argv[i];
+			procfile = argv[i];
+			break;
+		case 'p':
+			picfile = argv[i];
 			break;
 		case 'r':
 			runtext = argv[i];
@@ -114,6 +118,7 @@ void parseCmdLine(int argc, char **argv)
 	       "       -w <win width>  : Default = %d\n"
 	       "       -h <win height> : Default = %d\n"
 	       "       -l <filename>   : Procedure file to load at startup.\n"
+	       "       -p <filename>   : Picture file to load at startup.\n"
 	       "       -r <text>       : Code or procedure to run immediately.\n"
 	       "       -c <lines>      : Max number of console history lines. Default = %d\n"
 	       "       -i              : Set procedure listing indentation on.\n"
@@ -204,6 +209,7 @@ void init(bool startup)
 	logo_state = STATE_CMD;
 	stop_proc = NULL;
 	curr_proc_inst = NULL;
+	img_counter = 1;
 	nest_depth = 0;
 	srandom(time(0));
 	
@@ -227,15 +233,15 @@ void init(bool startup)
 		if (turtle) turtle->reset();
 	}
 
-	if (loadfile != "")
+	if (procfile != "")
 	{
 		try
 		{
-			loadProcFile(loadfile,"");
+			loadProcFile(procfile,"");
 		}
 		catch(t_error &err)
 		{
-			if (err.second == "") err.second = loadfile;
+			if (err.second == "") err.second = procfile;
 			printRunError(err.first,err.second.c_str());
 		}
 		catch(t_interrupt &inter)
@@ -243,6 +249,18 @@ void init(bool startup)
 			// If we restarted we'd just get into an infinite loop
 			assert(inter.first == INT_RESTART);
 			printRunError(ERR_CANT_RESTART,"RESTART");
+		}
+	}
+	if (picfile != "")
+	{
+		try
+		{
+			auto [img,width,height,bytes] = loadPicFile(picfile);
+			setPicture(createPicture(img,width,height));
+		}
+		catch(t_error &err)
+		{
+			printRunError(err.first,err.second.c_str());
 		}
 	}
 	if (runtext != "")

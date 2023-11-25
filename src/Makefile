@@ -17,10 +17,12 @@ OBJS=\
 	st_turtle.o \
 	st_turtle_line.o \
 	st_turtle_circle.o \
+	st_picture.o \
 	commands.o \
 	sys_procs.o \
 	strings.o \
-	files.o \
+	proc_files.o \
+	pictures.o \
 	vars.o \
 	path.o \
 	xwin.o \
@@ -64,6 +66,9 @@ st_turtle_line.o: st_turtle_line.cc $(DEPS)
 st_turtle_circle.o: st_turtle_circle.cc $(DEPS)
 	$(COMP) st_turtle_circle.cc
 
+st_picture.o: st_picture.cc $(DEPS)
+	$(COMP) st_picture.cc
+
 commands.o: commands.cc $(DEPS)
 	$(COMP) commands.cc
 
@@ -73,8 +78,11 @@ sys_procs.o: sys_procs.cc $(DEPS)
 strings.o: strings.cc $(DEPS) 
 	$(COMP) strings.cc
 
-files.o: files.cc $(DEPS)
-	$(COMP) files.cc
+proc_files.o: proc_files.cc $(DEPS)
+	$(COMP) proc_files.cc
+
+pictures.o: pictures.cc $(DEPS)
+	$(COMP) pictures.cc
 
 vars.o: vars.cc $(DEPS) build_date
 	$(COMP) vars.cc

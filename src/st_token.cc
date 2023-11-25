@@ -30,6 +30,17 @@ st_token::st_token(double num)
 
 
 
+// Used in procLoadSavePic()
+st_token::st_token(char *_strval)
+{
+	init();
+	type = TYPE_STR;
+	strval = _strval;
+}
+
+
+
+
 // Used in st_line::evalList() hence list evaluation
 st_token::st_token(shared_ptr<st_line> _listline)
 {
